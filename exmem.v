@@ -1,18 +1,23 @@
 `timescale 1ns / 1ps
 
 module exmem #(parameter WIDTH = 16, RAM_ADDR_BITS = 16)
-   (input clk, en,
+   (input clk, rst, en,
     input memwrite, memread,
     input [RAM_ADDR_BITS-1:0] adr,
     input [WIDTH-1:0] writedata,
 	 input [3:0] pc,
     output reg [WIDTH-1:0] memdata,
-	 output reg [WIDTH-1:0] instruction
+	 output reg [WIDTH-1:0] instruction,
+	 output reg [WIDTH-1:0] randomVal,
+	 output reg [WIDTH-1:0] p1, p2, p3, p4
 	 //output reg [WIDTH-1:0] playerInputVal,
 	 //inout reg playerInputFlag
     );
 
-   reg [WIDTH-1:0] ram [(2*RAM_ADDR_BITS)-1:0];
+	wire [15:0] out;
+	//Currently 48 adressess available --> This will be expanded to 64k ultimately
+   reg [WIDTH-1:0] ram [(3*RAM_ADDR_BITS)-1:0];
+	
 	
  initial begin
 
@@ -27,7 +32,7 @@ module exmem #(parameter WIDTH = 16, RAM_ADDR_BITS = 16)
  // Kris' Path
  //$readmemh("C:\\Users\\u1014583\\Documents\\HexDefenders\\Processor\\new_test.dat", ram);
  // Cameron's Path
- $readmemh("C:\\intelFPGA_lite\\18.1\\Processor\\testfile.dat", ram);
+ $readmemh("C:\\Users\\u1014583\\Documents\\School\\ECE 3710 - Computer Design Lab\\HexDefenders\\FullSystem\\testfile.dat", ram);
  
  // This "always" block simulates as a RAM, and synthesizes to a block
  // RAM on the Spartan-3E part. Note that the RAM is clocked. Reading
@@ -40,15 +45,30 @@ module exmem #(parameter WIDTH = 16, RAM_ADDR_BITS = 16)
 //			ram[16'h1] = 16'h4; // value
 	end
 	
+	LFSR randomNum (.clk(clk), .rst(rst), .out(out));
+	
+	
 	always @(posedge clk) begin
 		//playerInputVal <= ram[/*adr for flag*/];
+		ram[16'h0021] <= out; //CHANGE THIS LATER WHEN MEM MAPPING IS EXPANDED
 		instruction <= ram[pc];
+		
       if (en) begin
          if (memwrite)
             ram[adr] <= writedata;
 			if (memread)
 				memdata <= ram[adr];
       end
+		else begin
+			if (adr == 16'h002D) begin
+				randomVal <= writedata;
+				p1 <= ram[16'd32]; //tEMP VALUES: NEEDS TO BE CHANGED LATER
+				p2 <= ram[16'd33];
+				p3 <= ram[16'd34];
+				p4 <= ram[16'd35];
+			end
+		
+		end
 	end
 	
 //	always @(playerInputFlag)

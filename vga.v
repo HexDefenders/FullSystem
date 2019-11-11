@@ -14,7 +14,7 @@ module vga (clk, rst, value, p1, p2, p3, p4, hsync, vsync, vga_blank_n, vga_clk,
 	wire	 [4095:0] bglyph;
 	
 	vga_control uut1 (
-		.clk(clk), .rst(rst), .value(switches[9:6]), .p1(switches[3]), .p2(switches[2]), .p3(switches[1]), .p4(switches[0]), .gval(val), .gbval(bval), .hsync(hsync), .vsync(vsync),
+		.clk(clk), .rst(rst), .value(value), .p1(p1), .p2(p2), .p3(p3), .p4(p4), .gval(val), .gbval(bval), .hsync(hsync), .vsync(vsync),
 		.vga_blank_n(vga_blank_n), .vga_clk(vga_clk), .bright(bright), 
 		.main(main_disp), .x_start(x_start), .x_end(x_end), .y_start(y_start), .y_end(y_end),
 		.rgb_color(rgb_color), .hcount(hcount), .vcount(vcount)
