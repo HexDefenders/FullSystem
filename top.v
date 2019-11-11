@@ -1,7 +1,8 @@
-module top(clk, rst); //, instruction); //add I/O devices to this list later on
+module top(clk, rst, hsync, vsync, vga_blank_n, vga_clk, r, g, b);
 
 	input clk, rst;
-	//input [15:0] instruction;
+	output hsync, vsync, vga_blank_n, vga_clk;
+	output [7:0] r, g, b;
 	
 	wire memread, memwrite;
 	wire [15:0] memdata, adr, writedata, instruction, srcData, dstData, imm;
@@ -26,5 +27,12 @@ module top(clk, rst); //, instruction); //add I/O devices to this list later on
 		
 	assign en = 1;
 	exmem mem(.clk(~clk), .en(en), .pc(nextpc), .memwrite(memwrite), .memread(memread), .adr(adr), .writedata(dstData), .memdata(memdata), .instruction(instruction));
+	
+	vga vga (
+		.clk(clk), .rst(rst), 
+		.value(), .p1(), .p2(), .p3(), .p4(), 
+		.hsync(hsync), .vsync(vsync), .vga_blank_n(vga_blank_n), .vga_clk(vga_clk), .r(r), .g(g), .b(b)
+	);
+
 	
 endmodule  
