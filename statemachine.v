@@ -16,23 +16,25 @@ module statemachine(clk, reset, C, L, F, Z, N, instruction, aluControl, pcRegEn,
 		else PS <= NS;
 	end
 	
-	always@(*) begin
+	always@(clk, reset, instruction, PS) begin
 		// initialize control signals
 		{pcRegEn, srcRegEn, dstRegEn, immRegEn, resultRegEn, signEn, regFileEn, pcRegMuxEn, 
 		shiftALUMuxEn, regImmMuxEn, resultRegEn, memread, memwrite, irS} <= 1'd0;
-		aluControl = 4'b0;
 		{mux4En, regpcCont, pcEn, exMemResultEn} <= 2'b0;
-		NS = 6'b0;
+		aluControl <= 4'b0;
+		NS <= 6'b0;
 		
 		case(PS)
 			FETCH: begin // FETCH
 				pcRegEn <= 1;
 				memread <= 1;
 				NS <= DECODE;
+				if (instruction[7:4] == 4'b1011) // CMP
+						aluControl <= 4'b0010;
 			end
 			
 			DECODE: begin // DECODE
-				if (instruction[15:12] == 0000) begin // Register
+				if (instruction[15:12] == 4'b0000) begin // Register
 					if (instruction[7:4] == 4'b0101) begin // ADD
 						srcRegEn <= 1;
 						dstRegEn <= 1;
@@ -44,6 +46,7 @@ module statemachine(clk, reset, C, L, F, Z, N, instruction, aluControl, pcRegEn,
 						NS <= SUB;
 					end
 					else if (instruction[7:4] == 4'b1011) begin // CMP
+						//aluControl <= 4'b0010;
 						srcRegEn <= 1;
 						dstRegEn <= 1;
 						NS <= CMP;
@@ -81,25 +84,24 @@ module statemachine(clk, reset, C, L, F, Z, N, instruction, aluControl, pcRegEn,
 						dstRegEn <= 1;
 						NS <= STOR;
 					end
-					else if (instruction[7:4] == 1000) begin// JAL
+					else if (instruction[7:4] == 4'b1000) begin// JAL
 						srcRegEn <= 1;
 						dstRegEn <= 1;
-						//regpcCont <= 1;
 						NS <= JAL;
 					end
-					else if (instruction[7:4] == 1100) begin// Jcond
+					else if (instruction[7:4] == 4'b1100) begin// Jcond
 						NS <= JCOND;
 					end
 				end
 				
-				else if (instruction[15:12] == 1000) begin // Shift
-					if (instruction[7:4] == 0100) begin // LSH
+				else if (instruction[15:12] == 4'b1000) begin // Shift
+					if (instruction[7:4] == 4'b0100) begin // LSH
 						NS <= LSH;
 					end
-					else if (instruction[7:4] == 0000) begin // LSHI 
+					else if (instruction[7:4] == 4'b0000) begin // LSHI 
 						NS <= LSHI;
 					end
-					else if (instruction[7:4] == 0001) begin // LSHI
+					else if (instruction[7:4] == 4'b0001) begin // LSHI
 						NS <= S15;
 					end
 				end
@@ -158,7 +160,7 @@ module statemachine(clk, reset, C, L, F, Z, N, instruction, aluControl, pcRegEn,
 				end
 			end
 					
-			ADD: begin // ADD
+			ADD: begin 
 				regFileEn <= 1;
 				//pcRegMuxEn <= 1;
 				mux4En <= 0;
@@ -169,7 +171,7 @@ module statemachine(clk, reset, C, L, F, Z, N, instruction, aluControl, pcRegEn,
 				NS <= FETCH; 
 			end
 			
-			SUB: begin // SUB
+			SUB: begin 
 				regFileEn <= 1;
 				//pcRegMuxEn <= 1;
 				mux4En <= 0;
@@ -180,18 +182,18 @@ module statemachine(clk, reset, C, L, F, Z, N, instruction, aluControl, pcRegEn,
 				NS <= FETCH; 
 			end
 			
-			CMP: begin // CMP
-				regFileEn <= 1;
+			CMP: begin 
+				//regFileEn <= 1; // Don't delete yet
 				//pcRegMuxEn <= 1;
 				mux4En <= 0;
 				aluControl <= 4'b0010;
 				shiftALUMuxEn <= 0;
 				//resultRegEn <= 1;
-				pcEn <= 2'b01;
+				pcEn <= 2'b01;	
 				NS <= FETCH;
 			end
 			
-			AND: begin // AND
+			AND: begin 
 				regFileEn <= 1;
 				//pcRegMuxEn <= 1;
 				mux4En <= 0;
@@ -202,7 +204,7 @@ module statemachine(clk, reset, C, L, F, Z, N, instruction, aluControl, pcRegEn,
 				NS <= FETCH; 
 			end
 			
-			OR: begin // OR
+			OR: begin 
 				regFileEn <= 1;
 				//pcRegMuxEn <= 1;
 				mux4En <= 0;
@@ -213,7 +215,7 @@ module statemachine(clk, reset, C, L, F, Z, N, instruction, aluControl, pcRegEn,
 				NS <= FETCH;
 			end
 			
-			XOR: begin // XOR
+			XOR: begin 
 				regFileEn <= 1;
 				//pcRegMuxEn <= 1;
 				mux4En <= 0;
@@ -261,10 +263,55 @@ module statemachine(clk, reset, C, L, F, Z, N, instruction, aluControl, pcRegEn,
 			end
 			
 			JCOND: begin // Jcond
-				//C, L, F, Z, N
-				//if (instruction[7:4] == 4'b0000) // EQ
-				pcEn <= 2'b10;
-				NS <= FETCH; 
+				pcEn <= 2'b01;
+				case(instruction[11:8])
+					4'b0000: // EQ Equal
+						if (Z == 1)
+							pcEn <= 2'b10;
+					4'b0001: // NE Not Equal
+						if (Z == 0)
+							pcEn <= 2'b10;
+					4'b1101: // GE Greater than or Equal
+						if (N == 1 || Z == 1)
+							pcEn <= 2'b10;
+					4'b0010: // CS Carry Set
+						if (C == 1)
+							pcEn <= 2'b10;
+					4'b0011: // CC Carry Clear
+						if (C == 0)
+							pcEn <= 2'b10;
+					4'b0100: // HI Higher than
+						if (L == 1)
+							pcEn <= 2'b10;
+					4'b0101: // LS Lower than or Same as
+						if (L == 0)
+							pcEn <= 2'b10;
+					4'b1010: // LO Lower than
+						if (L == 0 && Z == 0)
+							pcEn <= 2'b10;
+					4'b1011: // HS Higher than or Same as
+						if (L == 1 || Z == 1)
+							pcEn <= 2'b10;
+					4'b0110: // GT Greater than
+						if (N == 1)
+							pcEn <= 2'b10;
+					4'b0111: // LE Less than or Equal
+						if (N == 0)
+							pcEn <= 2'b10;
+					4'b1000: // FS Flag Set
+						if (F == 1)
+							pcEn <= 2'b10;
+					4'b1001: // FC Flag Clear
+						if (F == 0)	
+							pcEn <= 2'b10;
+					4'b1100: // LT Less Than
+						if (N == 0 && Z == 0)
+							pcEn <= 2'b10;
+					4'b1110: // UC Unconditional
+						pcEn <= 2'b10;
+					default:
+						pcEn <= 2'b01;
+				endcase
 			end
 			
 			LSH: begin // LSH
@@ -345,7 +392,7 @@ module statemachine(clk, reset, C, L, F, Z, N, instruction, aluControl, pcRegEn,
 			end
 			
 			CMPI: begin // CMPI
-				regFileEn <= 1;
+				//regFileEn <= 1; Don't delete yet
 				//pcRegMuxEn <= 1;
 				mux4En <= 2'b01;
 				aluControl <= 4'b0010;

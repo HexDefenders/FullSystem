@@ -36,7 +36,7 @@ module vga_control (clk, rst, value, p1, p2, p3, p4, gval, gbval, vga_blank_n, h
 	// Player 2
 	parameter p2_x_start = 10'd100;
 	parameter p2_y_start = 10'd200;
-	
+
 	// Player 3
 	parameter p3_x_start = 10'd100;
 	parameter p3_y_start = 10'd300;
@@ -46,8 +46,8 @@ module vga_control (clk, rst, value, p1, p2, p3, p4, gval, gbval, vga_blank_n, h
 	parameter p4_y_start = 10'd400;
 	
 	// Main display
-	parameter main_x_start = 10'd300;
-	parameter main_y_start = 10'd200;
+	parameter main_x_start = 10'd272;
+	parameter main_y_start = 10'd175;
 	parameter main_x_dim  = 10'd64;  // exact match to size of glyph projection width
 	parameter main_y_dim  = 10'd64; // exact match to size of glyph projection height
 

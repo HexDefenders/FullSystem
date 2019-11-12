@@ -9,7 +9,7 @@ module dataPath(clk, reset, memdata, instruction, aluControl, exMemResultEn, pcR
 	wire [3:0] src, dst, Rsrc, Rdest, OpCode, OpCodeExt;
 	wire [15:0] result, exMemOrResult, shiftOrALU, regFileResult, pcOrReg, mux4Out, aluResult, regOrImm, shiftOut;
 	wire [7:0] instImm, imm;
-	wire C, L, F, Z, N;
+	//wire C, L, F, Z, N;
 	output [15:0] srcData, dstData, adr, signOut;
 	output C, L, F, Z, N;
 	//output [3:0] pc;

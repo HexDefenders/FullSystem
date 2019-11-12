@@ -1,7 +1,9 @@
-module top(clk, rst, gpio1, hsync, vsync, vga_blank_n, vga_clk, r, g, b);
+module top(clk, rst, gpio1, board_switches, board_btns, hsync, vsync, vga_blank_n, vga_clk, r, g, b);
 
 	input clk, rst;
 	input [35:0] gpio1;
+	input [9:0] board_switches;
+	input [3:1] board_btns;
 	output hsync, vsync, vga_blank_n, vga_clk;
 	output [7:0] r, g, b;
 	
@@ -11,11 +13,12 @@ module top(clk, rst, gpio1, hsync, vsync, vga_blank_n, vga_clk, r, g, b);
 	wire [1:0] mux4En, regpcCont, pcEn, exMemResultEn;
 	wire [3:0] currentpc, nextpc;
 	wire C, L, F, Z, N, pcRegEn, srcRegEn, dstRegEn, immRegEn, resultRegEn, signEn, regFileEn, pcRegMuxEn, shiftALUMuxEn, regImmMuxEn, irS;
+	wire playerInputFlag;
 	
 	reg en;
 	
 	
-	programcounter programcounter(.clk(clk), .en(pcEn), .newAdr(srcData), .imm(imm), .nextpc(nextpc));
+	programcounter programcounter(.clk(clk), .en(pcEn), .newAdr(dstData), .imm(imm), .nextpc(nextpc));
 	
 	statemachine SM(.clk(clk), .reset(rst), .C(C), .L(L), .F(F), .Z(Z), .N(N), .instruction(instruction), .aluControl(aluControl), .pcRegEn(pcRegEn), .srcRegEn(srcRegEn), 
 						.dstRegEn(dstRegEn), .immRegEn(immRegEn), .resultRegEn(resultRegEn), .signEn(signEn), .regFileEn(regFileEn), .pcRegMuxEn(pcRegMuxEn), .mux4En(mux4En), 
@@ -30,7 +33,7 @@ module top(clk, rst, gpio1, hsync, vsync, vga_blank_n, vga_clk, r, g, b);
 	exmem mem(
 		.clk(~clk), .rst(rst), .en(en), .pc(nextpc), .memwrite(memwrite), .memread(memread), 
 		.adr(adr), .writedata(dstData), .memdata(memdata), .instruction(instruction), .randomVal(randomVal),
-		.p1(p1), .p2(p2), .p3(p3), .p4(p4)
+		.p1(p1), .p2(p2), .p3(p3), .p4(p4), .playerInputFlag(playerInputFlag)
 	);
 	
 	vga vga (
@@ -40,11 +43,10 @@ module top(clk, rst, gpio1, hsync, vsync, vga_blank_n, vga_clk, r, g, b);
 	);
 	
 	controllers controllers (
-		.gpins(gpio1), .playerInput(), .playerInputFlag(), .firstPlayerFlag(), .switchInput()
+		.gpins(gpio1), .playerInput(), .playerInputFlag(playerInputFlag), .firstPlayerFlag(), .switchInput()
 	);
 
-
-
+	
 	
 	always@(adr) begin
 		if (adr >= 16'd43) //I/O Space --> this will be updated to be 16'hC000

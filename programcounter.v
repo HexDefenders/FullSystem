@@ -2,9 +2,9 @@ module programcounter(clk, en, newAdr, imm, nextpc);
 	//ultimately, currentpc and nextpc are going to be 16 bits
 	input clk;
 	input [1:0] en;
-	//input [3:0] currentpc;
+	//input [7:0] currentpc;
 	input [15:0] newAdr, imm;
-	output reg [3:0] nextpc = 4'b0;
+	output reg [15:0] nextpc = 16'b0;
 	//reg [3:0] currentpc = 4'b0;
 	
 	always@(posedge clk) begin

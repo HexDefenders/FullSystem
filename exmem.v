@@ -9,15 +9,14 @@ module exmem #(parameter WIDTH = 16, RAM_ADDR_BITS = 16)
     output reg [WIDTH-1:0] memdata,
 	 output reg [WIDTH-1:0] instruction,
 	 output reg [WIDTH-1:0] randomVal,
-	 output reg [WIDTH-1:0] p1, p2, p3, p4
-	 //output reg [WIDTH-1:0] playerInputVal,
-	 //inout reg playerInputFlag
+	 output reg [WIDTH-1:0] p1, p2, p3, p4,
+	 inout playerInputFlag
     );
-
+	 
+	reg playerInputFlagReg;
 	wire [15:0] out;
 	//Currently 48 adressess available --> This will be expanded to 64k ultimately
    reg [WIDTH-1:0] ram [(3*RAM_ADDR_BITS)-1:0];
-	
 	
  initial begin
 
@@ -28,11 +27,7 @@ module exmem #(parameter WIDTH = 16, RAM_ADDR_BITS = 16)
  // synthesize correctly, fib.dat must have exactly 256 lines
  // (bytes). If that's the case, then the resulting bitstream will
  // correctly initialize the synthesized block RAM with the data. 
- 
- // Kris' Path
- //$readmemh("C:\\Users\\u1014583\\Documents\\HexDefenders\\Processor\\new_test.dat", ram);
- // Cameron's Path
- $readmemh("C:\\Users\\u1014583\\Documents\\School\\ECE 3710 - Computer Design Lab\\HexDefenders\\FullSystem\\testfile.dat", ram);
+ $readmemh("C:\\Users\\u1014583\\Documents\\School\\ECE 3710 - Computer Design Lab\\HexDefenders\\FullSystem\\runFullTest.dat", ram);
  
  // This "always" block simulates as a RAM, and synthesizes to a block
  // RAM on the Spartan-3E part. Note that the RAM is clocked. Reading
@@ -47,15 +42,19 @@ module exmem #(parameter WIDTH = 16, RAM_ADDR_BITS = 16)
 	
 	LFSR randomNum (.clk(clk), .rst(rst), .out(out));
 	
+	assign playerInputFlag = playerInputFlag & ram[16'd37][0];
 	
 	always @(posedge clk) begin
 		//playerInputVal <= ram[/*adr for flag*/];
-		ram[16'h0021] <= out; //CHANGE THIS LATER WHEN MEM MAPPING IS EXPANDED
+		ram[16'h0024] <= out; //CHANGE THIS LATER WHEN MEM MAPPING IS EXPANDED
+		ram[16'd37] <= {15'b0,playerInputFlag};
+		
 		instruction <= ram[pc];
 		
       if (en) begin
-         if (memwrite)
+         if (memwrite) begin
             ram[adr] <= writedata;
+			end
 			if (memread)
 				memdata <= ram[adr];
       end
@@ -70,8 +69,5 @@ module exmem #(parameter WIDTH = 16, RAM_ADDR_BITS = 16)
 		
 		end
 	end
-	
-//	always @(playerInputFlag)
-//		ram[/*adr for flag*/] <= playerInputFlag;
-						
+			
 endmodule

@@ -1,31 +1,36 @@
 module controllers (gpins, playerInput, playerInputFlag, firstPlayerFlag, switchInput);
 	input	     	[35:0]	gpins;
 	input		  	[15:0] 	playerInput;
-	inout reg				playerInputFlag;
+	inout						playerInputFlag;
 	output reg 	 [1:0]	firstPlayerFlag;
 	output		 [7:0]	switchInput;
+	
+	reg		  inputFlag;
 	
 	wire [7:0] mux4playeroutput;
 	
 	// Players Input Mapping
-	wire p1_sw = {gpins[33:26]};
-	wire p1_btn = gpins[25];
+	wire [7:0] p1_sw, p2_sw, p3_sw, p4_sw;
+	wire p1_btn, p2_btn, p3_btn, p4_btn;
 	
-	wire p2_sw = 0;
-	wire p2_btn = 0;
+	assign p1_sw = {gpins[32],gpins[33],gpins[30],gpins[31],gpins[28],gpins[29],gpins[26],gpins[27]};
+	assign p1_btn = gpins[25];
 	
-	wire p3_sw = 0;
-	wire p3_btn = 0;
+	assign p2_sw = 0;
+	assign p2_btn = 0;
 	
-	wire p4_sw = 0;
-	wire p4_btn = 0;
+	assign p3_sw = 0;
+	assign p3_btn = 0;
+	
+	assign p4_sw = 0;
+	assign p4_btn = 0;
 	
 	// Sensitivity list is all the GPIO pins for the buttons.
 	// If any are activated, the firstPlayerFlag will be swapped in
 	// order to process the correct player's pins and sets the 
 	// playerInputFlag to 1 in order to use the player's input rather 
 	// than the default of all 0's.
-	always @(p1_btn, p2_btn, p3_btn, p4_btn) begin
+	always @(posedge p1_btn, posedge p2_btn, posedge p3_btn, posedge p4_btn) begin
 		if (p1_btn)
 			firstPlayerFlag = 2'b00;
 		else if (p2_btn)
@@ -34,8 +39,10 @@ module controllers (gpins, playerInput, playerInputFlag, firstPlayerFlag, switch
 			firstPlayerFlag = 2'b10;
 		else
 			firstPlayerFlag = 2'b11;
-		playerInputFlag = 1'b1;
+		inputFlag = 1'b1;
 	end
+	
+//	assign playerInputFlag = inputFlag;
 	
 	mux4 #(8) whichPlayer (
 		.d0(p1_sw),				// 00 - p1

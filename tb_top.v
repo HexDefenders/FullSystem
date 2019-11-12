@@ -8,7 +8,7 @@ module tb_top();
 	wire [7:0] r, g, b;
 
 	top uut1 (
-		.clk(clk), .rst(rst), .gpio1(gpio1), 
+		.clk(clk), .rst(rst), .gpio1(gpio1),
 		.hsync(hsync), .vsync(vsync), .vga_blank_n(vga_blank_n), 
 		.vga_clk(vga_clk), .r(r), .g(g), .b(b));
 
@@ -16,10 +16,15 @@ module tb_top();
 	initial begin
 			
 		clk = 0;
-		rst = 0; #5;
+		rst = 0;
+		gpio1[25] = 0; #5;
 		
 		rst = 1; #10;
-		rst = 0; #20;
+		rst = 0; #1000;
+		
+		gpio1[25] = 1; #200;
+		gpio1[25] = 0; #20;
+		
 		
 		//Pre-existing values hardcoded into Registers
 		//R[1] = 2
