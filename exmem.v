@@ -5,12 +5,12 @@ module exmem #(parameter WIDTH = 16, RAM_ADDR_BITS = 16)
     input memwrite, memread,
     input [RAM_ADDR_BITS-1:0] adr,
     input [WIDTH-1:0] writedata,
-	 input [3:0] pc,
+	 input [4:0] pc,
     output reg [WIDTH-1:0] memdata,
 	 output reg [WIDTH-1:0] instruction,
 	 output reg [WIDTH-1:0] randomVal,
 	 output reg [WIDTH-1:0] p1, p2, p3, p4,
-	 inout playerInputFlag
+	 input playerInputFlag
     );
 	 
 	reg playerInputFlagReg;
@@ -27,7 +27,7 @@ module exmem #(parameter WIDTH = 16, RAM_ADDR_BITS = 16)
  // synthesize correctly, fib.dat must have exactly 256 lines
  // (bytes). If that's the case, then the resulting bitstream will
  // correctly initialize the synthesized block RAM with the data. 
- $readmemh("C:\\Users\\u1014583\\Documents\\School\\ECE 3710 - Computer Design Lab\\HexDefenders\\FullSystem\\runFullTest.dat", ram);
+ $readmemh("C:\\Users\\u1014583\\Documents\\School\\ECE 3710 - Computer Design Lab\\HexDefenders\\FullSystem\\RunFullTest_V2.dat", ram);
  
  // This "always" block simulates as a RAM, and synthesizes to a block
  // RAM on the Spartan-3E part. Note that the RAM is clocked. Reading
@@ -42,7 +42,7 @@ module exmem #(parameter WIDTH = 16, RAM_ADDR_BITS = 16)
 	
 	LFSR randomNum (.clk(clk), .rst(rst), .out(out));
 	
-	assign playerInputFlag = playerInputFlag & ram[16'd37][0];
+	//assign playerInputFlag = playerInputFlag & ram[16'd37][0];
 	
 	always @(posedge clk) begin
 		//playerInputVal <= ram[/*adr for flag*/];
@@ -59,7 +59,7 @@ module exmem #(parameter WIDTH = 16, RAM_ADDR_BITS = 16)
 				memdata <= ram[adr];
       end
 		else begin
-			if (adr == 16'h002D) begin
+			if (adr == 16'h002D && instruction[7:4] == 4'b0100) begin
 				randomVal <= writedata;
 				p1 <= ram[16'd32]; //tEMP VALUES: NEEDS TO BE CHANGED LATER
 				p2 <= ram[16'd33];

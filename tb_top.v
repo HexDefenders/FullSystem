@@ -17,14 +17,17 @@ module tb_top();
 			
 		clk = 0;
 		rst = 0;
-		gpio1[25] = 0; #5;
+		gpio1 = 0; #5;
 		
 		rst = 1; #10;
 		rst = 0; #1000;
 		
-		gpio1[25] = 1; #200;
-		gpio1[25] = 0; #20;
+		gpio1[25] = 1; #1000;
+		gpio1[25] = 0; #2000;
 		
+		
+		gpio1[25] = 1; #1000;
+		gpio1[25] = 0; #20;
 		
 		//Pre-existing values hardcoded into Registers
 		//R[1] = 2

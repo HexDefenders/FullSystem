@@ -172,7 +172,7 @@ module vga_control (clk, rst, value, p1, p2, p3, p4, gval, gbval, vga_blank_n, h
 			
 			// x
 			else if ((hcount >= (main_x_start + main_x_dim)) && (hcount < (main_x_start + main_x_dim + main_x_dim))) begin
-				gbval <= 5'h10;
+				gbval <= 5'h11;
 				
 				rgb_color <= rgb_text;
 				x_start   <= main_x_start + main_x_dim;

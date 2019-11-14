@@ -41,7 +41,7 @@ module dataPath(clk, reset, memdata, instruction, aluControl, exMemResultEn, pcR
 	
 	mux4 toALUMux(.d0(srcData), .d1(signOut), .d2(1), .d3(0), .s(mux4En), .y(mux4Out));
 	
-	alu ALU(.a(mux4Out), .b(dstData), .aluControl(aluControl), .C(C), .L(L), .F(F), .Z(Z), .N(N), .result(aluResult));
+	alu ALU(.clk(clk), .a(mux4Out), .b(dstData), .aluControl(aluControl), .Cout(C), .Lout(L), .Fout(F), .Zout(Z), .Nout(N), .result(aluResult));
 	
 	mux2 regOrImmMux(.d0(srcData), .d1(signOut), .s(regImmMuxEn), .y(regOrImm));
 	

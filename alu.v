@@ -1,24 +1,35 @@
-module alu(a, b, aluControl, C, L, F, Z, N, result);		
+module alu(clk, a, b, aluControl, Cout, Lout, Fout, Zout, Nout, result);
+	input clk;
 	input [15:0] a, b;
 	input [3:0] aluControl;
-	output reg C, L, F, Z, N;
+	output Cout, Lout, Fout, Zout, Nout;
 	output reg [15:0] result;
 	
+	wire regEn = 1;
+	reg C, L, F, Z, N;
+	
+	
+	register Cflag(C, regEn, clk, Cout);
+	register Lflag(L, regEn, clk, Lout);
+	register Fflag(F, regEn, clk, Fout);
+	register Zflag(Z, regEn, clk, Zout);
+	register Nflag(N, regEn, clk, Nout);
+	
 	always@(*) begin
-		C = C;
-		L = L;
-		F = F;
-		Z = Z; 
-		N = N;
+		C = 0;
+		L = 0;
+		F = 0;
+		Z = 0; 
+		N = 0;
 		result = 4'd0;
 		
 		case(aluControl) 
 			4'b0000: begin
-				C = C;
-				L = L;
-				F = F;
-				Z = Z; 
-				N = N;
+				C = Cout;
+				L = Lout;
+				F = Fout;
+				Z = Zout; 
+				N = Nout;
 			end
 			4'b0001: begin //SUB or SUBI
 			result = b - a; 
@@ -88,11 +99,11 @@ module alu(a, b, aluControl, C, L, F, Z, N, result);
 			
 			4'b0110: begin //LUI
 				result = {a[7:0], b[7:0]};	
-				C = C;
-				F = F;
-				L = L;
-				Z = Z; 
-				N = N;
+				C = Cout;
+				F = Fout;
+				L = Lout;
+				Z = Zout; 
+				N = Nout;
 			end
 			//4'b0111: begin //MOVI
 			//	result = b;

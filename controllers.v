@@ -1,7 +1,7 @@
 module controllers (gpins, playerInput, playerInputFlag, firstPlayerFlag, switchInput);
 	input	     	[35:0]	gpins;
 	input		  	[15:0] 	playerInput;
-	inout						playerInputFlag;
+	output reg				playerInputFlag;
 	output reg 	 [1:0]	firstPlayerFlag;
 	output		 [7:0]	switchInput;
 	
@@ -30,17 +30,29 @@ module controllers (gpins, playerInput, playerInputFlag, firstPlayerFlag, switch
 	// order to process the correct player's pins and sets the 
 	// playerInputFlag to 1 in order to use the player's input rather 
 	// than the default of all 0's.
-	always @(posedge p1_btn, posedge p2_btn, posedge p3_btn, posedge p4_btn) begin
-		if (p1_btn)
+	always @(p1_btn, p2_btn, p3_btn, p4_btn) begin
+		if (p1_btn) begin
 			firstPlayerFlag = 2'b00;
-		else if (p2_btn)
+			playerInputFlag = 1'b1;
+		end
+		else if (p2_btn) begin
 			firstPlayerFlag = 2'b01;
-		else if (p3_btn)
+			playerInputFlag = 1'b1;
+		end
+		else if (p3_btn) begin
 			firstPlayerFlag = 2'b10;
-		else
+			playerInputFlag = 1'b1;
+		end
+		else if (p4_btn) begin
 			firstPlayerFlag = 2'b11;
-		inputFlag = 1'b1;
+			playerInputFlag = 1'b1;
+		end
+		else begin
+			playerInputFlag = 1'b0;
+			firstPlayerFlag = 2'b00;
+		end
 	end
+	
 	
 //	assign playerInputFlag = inputFlag;
 	

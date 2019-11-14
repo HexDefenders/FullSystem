@@ -11,14 +11,14 @@ module top(clk, rst, gpio1, board_switches, board_btns, hsync, vsync, vga_blank_
 	wire [15:0] memdata, adr, writedata, instruction, srcData, dstData, imm, p1, p2, p3, p4, randomVal;
 	wire [3:0] aluControl;
 	wire [1:0] mux4En, regpcCont, pcEn, exMemResultEn;
-	wire [3:0] currentpc, nextpc;
+	wire [4:0] nextpc;
 	wire C, L, F, Z, N, pcRegEn, srcRegEn, dstRegEn, immRegEn, resultRegEn, signEn, regFileEn, pcRegMuxEn, shiftALUMuxEn, regImmMuxEn, irS;
 	wire playerInputFlag;
 	
 	reg en;
 	
 	
-	programcounter programcounter(.clk(clk), .en(pcEn), .newAdr(dstData), .imm(imm), .nextpc(nextpc));
+	programcounter programcounter(.clk(clk), .rst(rst), .en(pcEn), .newAdr(dstData), .imm(imm), .nextpc(nextpc));
 	
 	statemachine SM(.clk(clk), .reset(rst), .C(C), .L(L), .F(F), .Z(Z), .N(N), .instruction(instruction), .aluControl(aluControl), .pcRegEn(pcRegEn), .srcRegEn(srcRegEn), 
 						.dstRegEn(dstRegEn), .immRegEn(immRegEn), .resultRegEn(resultRegEn), .signEn(signEn), .regFileEn(regFileEn), .pcRegMuxEn(pcRegMuxEn), .mux4En(mux4En), 
