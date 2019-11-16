@@ -1,6 +1,6 @@
-module dataPath(clk, reset, memdata, instruction, aluControl, exMemResultEn, pcRegEn, srcRegEn, dstRegEn, immRegEn, resultRegEn, signEn, 
+module dataPath(clk, memdata, instruction, aluControl, exMemResultEn, pcRegEn, srcRegEn, dstRegEn, immRegEn, resultRegEn, signEn, 
 					 regFileEn, pcRegMuxEn, mux4En, shiftALUMuxEn, irS, regImmMuxEn, regpcCont, srcData, dstData, adr, signOut, C, L, F, Z, N);
-	input clk, reset;
+	input clk;
 	input [15:0] instruction, memdata;
 	input [3:0] aluControl;
 	//why are some mux 2 control signals 2 bits?

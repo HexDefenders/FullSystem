@@ -11,8 +11,8 @@ module statemachine(clk, reset, C, L, F, Z, N, instruction, aluControl, pcRegEn,
 						 JAL = 6'd11, JCOND = 6'd12, LSH = 6'd13, LSHI = 6'd14, S15 = 6'd15, BCOND = 6'd16, ANDI = 6'd17, ORI = 6'd18, XORI = 6'd19, ADDI = 6'd20,
 						 SUBI = 6'd21, CMPI = 6'd22, MOVI = 6'd23, LUI = 6'd24;
 						 
-	always @(posedge reset, posedge clk) begin
-		if (reset) PS <= FETCH;
+	always @(negedge reset, posedge clk) begin
+		if (!reset) PS <= FETCH;
 		else PS <= NS;
 	end
 	

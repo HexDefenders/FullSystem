@@ -27,6 +27,7 @@ module exmem #(parameter WIDTH = 16, RAM_ADDR_BITS = 16)
  // synthesize correctly, fib.dat must have exactly 256 lines
  // (bytes). If that's the case, then the resulting bitstream will
  // correctly initialize the synthesized block RAM with the data. 
+ // $readmemh("/home/pzamani/Downloads/FullSystem-master_Previous/FullSystem-master/RunFullTest_V2.dat", ram);
  $readmemh("C:\\Users\\u1014583\\Documents\\School\\ECE 3710 - Computer Design Lab\\HexDefenders\\FullSystem\\RunFullTest_V2.dat", ram);
  
  // This "always" block simulates as a RAM, and synthesizes to a block

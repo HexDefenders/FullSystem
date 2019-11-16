@@ -16,11 +16,11 @@ module tb_top();
 	initial begin
 			
 		clk = 0;
-		rst = 0;
+		rst = 1;
 		gpio1 = 0; #5;
 		
-		rst = 1; #10;
-		rst = 0; #1000;
+		rst = 0; #10;
+		rst = 1; #1000;
 		
 		gpio1[25] = 1; #1000;
 		gpio1[25] = 0; #2000;

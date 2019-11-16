@@ -7,8 +7,8 @@ module programcounter(clk, rst, en, newAdr, imm, nextpc);
 	output reg [15:0] nextpc = 16'b0;
 	//reg [3:0] currentpc = 4'b0;
 	
-	always@(posedge clk, posedge rst) begin
-		if (rst)
+	always@(posedge clk, negedge rst) begin
+		if (!rst)
 			nextpc <= 0;
 		else begin
 			case(en)
