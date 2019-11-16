@@ -27,7 +27,7 @@ module bitgen(bright, hcount, vcount, glyph, bglyph, main, x_start, x_end, y_sta
 	//  Large Font configurations
 	// ###############################
 	
-	wire [63:0] lbglyph [63:0];
+	wire [0:63] lbglyph [63:0];
 	assign lbglyph[0] = bglyph[4095:4032];
 	assign lbglyph[1] = bglyph[4031:3968];
 	assign lbglyph[2] = bglyph[3967:3904];
