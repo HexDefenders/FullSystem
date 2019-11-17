@@ -105,9 +105,10 @@ module alu(clk, a, b, aluControl, Cout, Lout, Fout, Zout, Nout, result);
 				Z = Zout; 
 				N = Nout;
 			end
-			//4'b0111: begin //MOVI
-			//	result = b;
-			//end
+			
+			4'b0111: begin // LSH
+				result = a << b;
+			end
 			
 			4'b1000: begin //ADD or ADDI
 				result = a + b; 

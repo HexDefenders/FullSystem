@@ -30,240 +30,234 @@ module statemachine(clk, reset, C, L, F, Z, N, instruction, aluControl, pcRegEn,
 				memread <= 1;
 				NS <= DECODE;
 				if (instruction[7:4] == 4'b1011) // CMP
-						aluControl <= 4'b0010;
+					aluControl <= 4'b0010;
 			end
 			
 			DECODE: begin // DECODE
-				if (instruction[15:12] == 4'b0000) begin // Register
-					if (instruction[7:4] == 4'b0101) begin // ADD
-						srcRegEn <= 1;
-						dstRegEn <= 1;
-						NS <= ADD;
+				case(instruction[15:12])
+					4'b000: begin // Register
+						if (instruction[7:4] == 4'b0101) begin // ADD
+							srcRegEn <= 1;
+							dstRegEn <= 1;
+							NS <= ADD;
+						end
+						else if (instruction[7:4] == 4'b1001) begin // SUB
+							srcRegEn <= 1;
+							dstRegEn <= 1;
+							NS <= SUB;
+						end
+						else if (instruction[7:4] == 4'b1011) begin // CMP
+							//aluControl <= 4'b0010;
+							srcRegEn <= 1;
+							dstRegEn <= 1;
+							NS <= CMP;
+						end
+						else if (instruction[7:4] == 4'b0001) begin // AND
+							srcRegEn <= 1;
+							dstRegEn <= 1;
+							NS <= AND;
+						end
+						else if (instruction[7:4] == 4'b0010) begin // OR
+							srcRegEn <= 1;
+							dstRegEn <= 1;
+							NS <= OR;
+						end
+						else if (instruction[7:4] == 4'b0011) begin // XOR
+							srcRegEn <= 1;
+							dstRegEn <= 1;
+							NS <= XOR;
+						end 
+						else if (instruction[7:4] == 4'b1101) begin // MOV
+							srcRegEn <= 1;
+							dstRegEn <= 1;
+							NS <= MOV;
+						end
 					end
-					else if (instruction[7:4] == 4'b1001) begin // SUB
-						srcRegEn <= 1;
-						dstRegEn <= 1;
-						NS <= SUB;
-					end
-					else if (instruction[7:4] == 4'b1011) begin // CMP
-						//aluControl <= 4'b0010;
-						srcRegEn <= 1;
-						dstRegEn <= 1;
-						NS <= CMP;
-					end
-					else if (instruction[7:4] == 4'b0001) begin // AND
-						srcRegEn <= 1;
-						dstRegEn <= 1;
-						NS <= AND;
-					end
-					else if (instruction[7:4] == 4'b0010) begin // OR
-						srcRegEn <= 1;
-						dstRegEn <= 1;
-						NS <= OR;
-					end
-					else if (instruction[7:4] == 4'b0011) begin // XOR
-						srcRegEn <= 1;
-						dstRegEn <= 1;
-						NS <= XOR;
-					end 
-					else if (instruction[7:4] == 4'b1101) begin // MOV
-						srcRegEn <= 1;
-						dstRegEn <= 1;
-						NS <= MOV;
-					end
-				end
 				
-				else if (instruction[15:12] == 4'b0100) begin // Special
-					if (instruction[7:4] == 4'b0000) begin // LOAD
-						srcRegEn <= 1;
-						dstRegEn <= 1;
-						NS <= LOAD;
+					4'b0100: begin // Special
+						if (instruction[7:4] == 4'b0000) begin // LOAD
+							srcRegEn <= 1;
+							dstRegEn <= 1;
+							NS <= LOAD;
+						end
+						else if (instruction[7:4] == 4'b0100) begin // STOR
+							srcRegEn <= 1;
+							dstRegEn <= 1;
+							NS <= STOR;
+						end
+						else if (instruction[7:4] == 4'b1000) begin // JAL
+							srcRegEn <= 1;
+							dstRegEn <= 1;
+							NS <= JAL;
+						end
+						else if (instruction[7:4] == 4'b1100) begin // Jcond
+							NS <= JCOND;
+						end
 					end
-					else if (instruction[7:4] == 4'b0100) begin // STOR
-						srcRegEn <= 1;
-						dstRegEn <= 1;
-						NS <= STOR;
+
+					4'b1000: begin //Shift
+						if (instruction[7:4] == 4'b0100) begin // LSH
+							NS <= LSH;
+						end
+						else if (instruction[7:4] == 4'b0000) begin // LSHI 
+							NS <= LSHI;
+						end
+						else if (instruction[7:4] == 4'b0001) begin // LSHI
+							NS <= S15;
+						end
 					end
-					else if (instruction[7:4] == 4'b1000) begin// JAL
-						srcRegEn <= 1;
-						dstRegEn <= 1;
-						NS <= JAL;
-					end
-					else if (instruction[7:4] == 4'b1100) begin// Jcond
-						NS <= JCOND;
-					end
-				end
-				
-				else if (instruction[15:12] == 4'b1000) begin // Shift
-					if (instruction[7:4] == 4'b0100) begin // LSH
-						NS <= LSH;
-					end
-					else if (instruction[7:4] == 4'b0000) begin // LSHI 
-						NS <= LSHI;
-					end
-					else if (instruction[7:4] == 4'b0001) begin // LSHI
-						NS <= S15;
-					end
-				end
-				
-				else if (instruction[15:12] == 4'b1100) begin // Bcond
 					
-					NS <= BCOND;
-				end
-				else if (instruction[15:12] == 4'b0001) begin // ANDI
-					immRegEn <= 1;
-					dstRegEn <= 1;
-					irS <= 1;
-					NS <= ANDI;
-				end
-				else if (instruction[15:12] == 4'b0010) begin // ORI
-					immRegEn <= 1;
-					dstRegEn <= 1;
-					irS <= 1;
-					NS <= ORI;
-				end
-				else if (instruction[15:12] == 4'b0011) begin // XORI
-					immRegEn <= 1;
-					dstRegEn <= 1;
-					irS <= 1;
-					NS <= XORI;
-				end
-				else if (instruction[15:12] == 4'b0101) begin // ADDI
-					immRegEn <= 1;
-					dstRegEn <= 1;
-					irS <= 1;
-					NS <= ADDI;
-				end
-				else if (instruction[15:12] == 4'b1001) begin // SUBI
-					immRegEn <= 1;
-					dstRegEn <= 1;
-					irS <= 1;
-					NS <= SUBI;
-				end
-				else if (instruction[15:12] == 4'b1011) begin // CMPI
-					immRegEn <= 1;
-					dstRegEn <= 1;
-					irS <= 1;
-					NS <= CMPI;
-				end
-				else if (instruction[15:12] == 4'b1101) begin // MOVI
-					immRegEn <= 1;
-					dstRegEn <= 1;
-					irS <= 1;
-					NS <= MOVI;
-				end
-				else if (instruction[15:12] == 4'b1111) begin // LUI
-					immRegEn <= 1;
-					dstRegEn <= 1;
-					irS <= 1;
-					NS <= LUI;
-				end
+					4'b1100: begin // Bcond
+						NS <= BCOND;
+					end
+					
+					4'b0001: begin // ANDI
+						immRegEn <= 1;
+						dstRegEn <= 1;
+						irS <= 1;
+						NS <= ANDI;
+					end
+					
+					4'b0010: begin // ORI
+						immRegEn <= 1;
+						dstRegEn <= 1;
+						irS <= 1;
+						NS <= ORI;
+					end
+					
+					4'b0011: begin // XORI
+						immRegEn <= 1;
+						dstRegEn <= 1;
+						irS <= 1;
+						NS <= XORI;
+					end
+					
+					4'b0101: begin // ADDI
+						immRegEn <= 1;
+						dstRegEn <= 1;
+						irS <= 1;
+						NS <= ADDI;
+					end
+					
+					4'b1001: begin // SUBI
+						immRegEn <= 1;
+						dstRegEn <= 1;
+						irS <= 1;
+						NS <= SUBI;
+					end
+					
+					4'b1011: begin // CMPI
+						immRegEn <= 1;
+						dstRegEn <= 1;
+						irS <= 1;
+						NS <= CMPI;
+					end
+					
+					4'b1101: begin // MOVI
+						immRegEn <= 1;
+						dstRegEn <= 1;
+						irS <= 1;
+						NS <= MOVI;
+					end
+					
+					4'b1111: begin // LUI
+						immRegEn <= 1;
+						dstRegEn <= 1;
+						irS <= 1;
+						NS <= LUI;
+					end
+				endcase
 			end
 					
 			ADD: begin 
 				regFileEn <= 1;
-				//pcRegMuxEn <= 1;
 				mux4En <= 0;
 				aluControl <= 4'b1000;
 				shiftALUMuxEn <= 0;
-				//resultRegEn <= 1;
 				pcEn <= 2'b01;
 				NS <= FETCH; 
 			end
 			
 			SUB: begin 
 				regFileEn <= 1;
-				//pcRegMuxEn <= 1;
 				mux4En <= 0;
 				aluControl <= 4'b0001;
 				shiftALUMuxEn <= 0;
-				//resultRegEn <= 1;
 				pcEn <= 2'b01;
 				NS <= FETCH; 
 			end
 			
 			CMP: begin 
 				//regFileEn <= 1; // Don't delete yet
-				//pcRegMuxEn <= 1;
 				mux4En <= 0;
 				aluControl <= 4'b0010;
 				shiftALUMuxEn <= 0;
-				//resultRegEn <= 1;
 				pcEn <= 2'b01;	
 				NS <= FETCH;
 			end
 			
 			AND: begin 
 				regFileEn <= 1;
-				//pcRegMuxEn <= 1;
 				mux4En <= 0;
 				aluControl <= 4'b0011;
 				shiftALUMuxEn <= 0;
-				//resultRegEn <= 1;
 				pcEn <= 2'b01;
 				NS <= FETCH; 
 			end
 			
 			OR: begin 
 				regFileEn <= 1;
-				//pcRegMuxEn <= 1;
 				mux4En <= 0;
 				aluControl <= 4'b0100;
 				shiftALUMuxEn <= 0;
-				//resultRegEn <= 1;
 				pcEn <= 2'b01;
 				NS <= FETCH;
 			end
 			
 			XOR: begin 
 				regFileEn <= 1;
-				//pcRegMuxEn <= 1;
 				mux4En <= 0;
 				aluControl <= 4'b0101;
 				shiftALUMuxEn <= 0;
-				//resultRegEn <= 1;
 				pcEn <= 2'b01;
 				NS <= FETCH;
 			end
 			
-			MOV: begin // MOV
+			MOV: begin 
 				regFileEn <= 1;
-				//pcRegMuxEn <= 1;
 				mux4En <= 0;
-				//aluControl <= 4'b0110;
 				shiftALUMuxEn <= 0;
-				//resultRegEn <= 1;
 				pcEn <= 2'b01;
 				exMemResultEn <= 2'b10;
 				NS <= FETCH;
 			end
 			
-			LOAD: begin // LOAD
+			LOAD: begin 
 				regFileEn <= 1;
 				memread <= 1;
 				memwrite <= 0;
 				exMemResultEn <= 2'b1;
 				pcEn <= 2'b01;
-				NS <= FETCH; // Added 11/10
+				NS <= FETCH; 
 			end
 			
-			STOR: begin // STOR
+			STOR: begin 
 				regFileEn <= 0;
 				memread <= 0;
 				memwrite <= 1;
 				exMemResultEn <= 2'b1;
 				pcEn <= 2'b01;
-				NS <= FETCH; // Added 11/10
+				NS <= FETCH; 
 			end
 			
-			JAL: begin // JAL
+			JAL: begin 
 				//add more to this
 				pcEn <= 2'b10;
 				NS <= FETCH; 
 			end
 			
-			JCOND: begin // Jcond
-				pcEn <= 2'b01;
+			JCOND: begin 
+				pcEn <= 2'b01; // Initialize pcEn to pc += 1
 				case(instruction[11:8])
 					4'b0000: // EQ Equal
 						if (Z == 1)
@@ -314,7 +308,12 @@ module statemachine(clk, reset, C, L, F, Z, N, instruction, aluControl, pcRegEn,
 				endcase
 			end
 			
-			LSH: begin // LSH
+			LSH: begin
+				regFileEn <= 1;
+				mux4En <= 0;
+				aluControl <= 4'b0111;
+				shiftALUMuxEn <= 0;
+				pcEn <= 2'b01;
 				NS <= FETCH; 
 			end
 			
@@ -333,11 +332,9 @@ module statemachine(clk, reset, C, L, F, Z, N, instruction, aluControl, pcRegEn,
 			
 			ANDI: begin // ANDI
 				regFileEn <= 1;
-				//pcRegMuxEn <= 1;
 				mux4En <= 2'b01;
 				aluControl <= 4'b0011;
 				shiftALUMuxEn <= 0;
-				//resultRegEn <= 1;
 				irS <= 1;
 				pcEn <= 2'b01;
 				NS <= FETCH; 
@@ -345,11 +342,9 @@ module statemachine(clk, reset, C, L, F, Z, N, instruction, aluControl, pcRegEn,
 			
 			ORI: begin // ORI
 				regFileEn <= 1;
-				//pcRegMuxEn <= 1;
 				mux4En <= 2'b01;
 				aluControl <= 4'b0100;
 				shiftALUMuxEn <= 0;
-				//resultRegEn <= 1;
 				irS <= 1;
 				pcEn <= 2'b01;
 				NS <= FETCH;
@@ -357,11 +352,9 @@ module statemachine(clk, reset, C, L, F, Z, N, instruction, aluControl, pcRegEn,
 			
 			XORI: begin // XORI
 				regFileEn <= 1;
-				//pcRegMuxEn <= 1;
 				mux4En <= 2'b01;
 				aluControl <= 4'b0101;
 				shiftALUMuxEn <=0;
-				//resultRegEn <= 1;
 				irS <= 1;
 				pcEn <= 2'b01;
 				NS <= FETCH;
@@ -369,11 +362,9 @@ module statemachine(clk, reset, C, L, F, Z, N, instruction, aluControl, pcRegEn,
 			
 			ADDI: begin // ADDI
 				regFileEn <= 1;
-				//pcRegMuxEn <= 1;
 				mux4En <= 2'b01;
 				aluControl <= 4'b1000;
 				shiftALUMuxEn <= 0;
-				//resultRegEn <= 1;
 				irS <= 1;
 				pcEn <= 2'b01;
 				NS <= FETCH; 
@@ -381,11 +372,9 @@ module statemachine(clk, reset, C, L, F, Z, N, instruction, aluControl, pcRegEn,
 			
 			SUBI: begin // SUBI
 				regFileEn <= 1;
-				//pcRegMuxEn <= 1;
 				mux4En <= 2'b01;
 				aluControl <= 4'b0001;
 				shiftALUMuxEn <= 0;
-				//resultRegEn <= 1;
 				irS <= 1;
 				pcEn <= 2'b01;
 				NS <= FETCH; 
@@ -393,11 +382,9 @@ module statemachine(clk, reset, C, L, F, Z, N, instruction, aluControl, pcRegEn,
 			
 			CMPI: begin // CMPI
 				//regFileEn <= 1; Don't delete yet
-				//pcRegMuxEn <= 1;
 				mux4En <= 2'b01;
 				aluControl <= 4'b0010;
 				shiftALUMuxEn <= 0;
-				//resultRegEn <= 1;
 				irS <= 1;
 				pcEn <= 2'b01;
 				NS <= FETCH;
@@ -405,10 +392,8 @@ module statemachine(clk, reset, C, L, F, Z, N, instruction, aluControl, pcRegEn,
 			
 			MOVI: begin // MOVI
 				regFileEn <= 1;
-				//pcRegMuxEn <= 1;
 				mux4En <= 2'b01;
 				shiftALUMuxEn <= 0;
-				//resultRegEn <= 1;
 				irS <= 1;
 				pcEn <= 2'b01;
 				exMemResultEn <= 2'b10;
