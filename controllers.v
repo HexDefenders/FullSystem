@@ -1,4 +1,5 @@
-module controllers (gpins, playerInput, playerInputFlag, firstPlayerFlag, switchInput);
+module controllers (clk, gpins, playerInput, playerInputFlag, firstPlayerFlag, switchInput);
+	input						clk;
 	input	     	[35:0]	gpins;
 	input		  	[15:0] 	playerInput;
 	output reg				playerInputFlag;
@@ -11,19 +12,21 @@ module controllers (gpins, playerInput, playerInputFlag, firstPlayerFlag, switch
 	
 	// Players Input Mapping
 	wire [7:0] p1_sw, p2_sw, p3_sw, p4_sw;
+	wire db_btn1, db_btn2, db_btn3, db_btn4;
 	wire p1_btn, p2_btn, p3_btn, p4_btn;
 	
+	// testing revealed ~2ms debounce time (50MHz clk * 2ms = 100,000)
+	//		waiting 100,000 cycles before reveals output of btn
+	btn_debounce #(125000) bd1 (.clk(clk), .in_btn(gpins[25]), .out_btn(db_btn1));
+	btn_debounce #(100000) bd2 (.clk(clk), .in_btn(0), .out_btn(db_btn2));
+	btn_debounce #(100000) bd3 (.clk(clk), .in_btn(0), .out_btn(db_btn3));
+	btn_debounce #(100000) bd4 (.clk(clk), .in_btn(0), .out_btn(db_btn4));
+	
 	assign p1_sw = {gpins[32],gpins[33],gpins[30],gpins[31],gpins[28],gpins[29],gpins[26],gpins[27]};
-	assign p1_btn = gpins[25];
-	
+	assign p1_btn = ~db_btn1;
 	assign p2_sw = 0;
-	assign p2_btn = 0;
-	
 	assign p3_sw = 0;
-	assign p3_btn = 0;
-	
 	assign p4_sw = 0;
-	assign p4_btn = 0;
 	
 	// Sensitivity list is all the GPIO pins for the buttons.
 	// If any are activated, the firstPlayerFlag will be swapped in

@@ -43,7 +43,7 @@ module top(clk, rst, gpio1, board_switches, board_btns, hsync, vsync, vga_blank_
 	);
 	
 	controllers controllers (
-		.gpins(gpio1), .playerInput(), .playerInputFlag(playerInputFlag), .firstPlayerFlag(), .switchInput()
+		.clk(clk), .gpins(gpio1), .playerInput(), .playerInputFlag(playerInputFlag), .firstPlayerFlag(), .switchInput()
 	);
 
 	
