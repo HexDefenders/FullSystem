@@ -8,15 +8,16 @@ module vga (clk, rst, value, p1, p2, p3, p4, hsync, vsync, vga_blank_n, vga_clk,
 	wire   [23:0] rgb_color;
 	wire	 [9:0]  hcount, vcount, x_start, x_end, y_start, y_end;
 	wire   [5:0]  val, bval;
-	wire 			  bright, main_disp;
+	wire 			  bright;
+	wire	 [1:0]  mode;
 	
 	wire	 [63:0] glyph;
 	wire	 [4095:0] bglyph;
 	
 	vga_control uut1 (
-		.clk(clk), .rst(rst), .value(value), .p1(p1), .p2(p2), .p3(p3), .p4(p4), .gval(val), .gbval(bval), .hsync(hsync), .vsync(vsync),
+		.clk(clk), .rst(rst), .value(value), .p1(0), .p2(0), .p3(0), .p4(0), .gval(val), .gbval(bval), .hsync(hsync), .vsync(vsync),
 		.vga_blank_n(vga_blank_n), .vga_clk(vga_clk), .bright(bright), 
-		.main(main_disp), .x_start(x_start), .x_end(x_end), .y_start(y_start), .y_end(y_end),
+		.mode(mode), .x_start(x_start), .x_end(x_end), .y_start(y_start), .y_end(y_end),
 		.rgb_color(rgb_color), .hcount(hcount), .vcount(vcount)
 	);
 
@@ -29,7 +30,7 @@ module vga (clk, rst, value, p1, p2, p3, p4, hsync, vsync, vga_blank_n, vga_clk,
 	);
 	
 	bitgen uut4 (
-		.bright(bright), .hcount(hcount), .vcount(vcount), .glyph(glyph), .bglyph(bglyph), .main(main_disp),
+		.bright(bright), .hcount(hcount), .vcount(vcount), .glyph(glyph), .bglyph(bglyph), .mode(mode),
 		.x_start(x_start), .x_end(x_end), .y_start(y_start), .y_end(y_end), .rgb_color(rgb_color), .rgb({r,g,b})
 	);
 

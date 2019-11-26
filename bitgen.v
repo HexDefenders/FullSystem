@@ -1,5 +1,6 @@
-module bitgen(bright, hcount, vcount, glyph, bglyph, main, x_start, x_end, y_start, y_end, rgb_color, rgb);
-	input  			     bright, main;
+module bitgen(bright, hcount, vcount, glyph, bglyph, mode, x_start, x_end, y_start, y_end, rgb_color, rgb);
+	input  			     bright;
+	input		  [1:0]	  mode;
 	input  	  [9:0]    hcount, vcount, x_start, x_end, y_start, y_end;
 	input  	  [63:0]   glyph;
 	input 	  [4095:0] bglyph;
@@ -104,10 +105,24 @@ module bitgen(bright, hcount, vcount, glyph, bglyph, main, x_start, x_end, y_sta
 		
 		if (vcount >= y_start && vcount < y_end) begin
 			if (hcount >= x_start && hcount < x_end) begin
-				if (main && lbglyph[vcount-y_start][hcount-x_start] == 1'b1)
-					rgbout <= rgb_color;
-				else if (!main && lglyph[vcount-y_start][hcount-x_start] == 1'b1)
-					rgbout <= rgb_color;
+				case (mode) 
+					// Background
+					2'b00:	rgbout <= rgb_color;
+					
+					// 8x8 text
+					2'b01: begin
+						if (lglyph[vcount-y_start][hcount-x_start] == 1'b1)
+							rgbout <= rgb_color;
+					end
+					
+					// 64x64 text
+					2'b10: begin
+						if (lbglyph[vcount-y_start][hcount-x_start] == 1'b1)
+							rgbout <= rgb_color;
+					end
+					
+					default:	rgbout <= rgb_color;
+				endcase
 			end
 		end
 		

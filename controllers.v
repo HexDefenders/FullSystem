@@ -1,5 +1,5 @@
-module controllers (clk, gpins, playerInput, playerInputFlag, firstPlayerFlag, switchInput);
-	input						clk;
+module controllers (clk, board_switch, gpins, playerInput, playerInputFlag, firstPlayerFlag, switchInput);
+	input						clk, board_switch;
 	input	     	[35:0]	gpins;
 	input		  	[15:0] 	playerInput;
 	output reg				playerInputFlag;
@@ -17,7 +17,7 @@ module controllers (clk, gpins, playerInput, playerInputFlag, firstPlayerFlag, s
 	
 	// testing revealed ~2ms debounce time (50MHz clk * 2ms = 100,000)
 	//		waiting 100,000 cycles before reveals output of btn
-	btn_debounce #(125000) bd1 (.clk(clk), .in_btn(gpins[25]), .out_btn(db_btn1));
+	btn_debounce #(125000) bd1 (.clk(clk), .in_btn(board_switch), .out_btn(db_btn1));
 	btn_debounce #(100000) bd2 (.clk(clk), .in_btn(0), .out_btn(db_btn2));
 	btn_debounce #(100000) bd3 (.clk(clk), .in_btn(0), .out_btn(db_btn3));
 	btn_debounce #(100000) bd4 (.clk(clk), .in_btn(0), .out_btn(db_btn4));

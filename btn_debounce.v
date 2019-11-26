@@ -17,7 +17,7 @@ module en_counter #(parameter CLK_PERIOD = 50)
 	input clk, btn;
 	output reg en;
 	
-	reg [26:0] counter = 0;
+	integer counter = 0;
 	
 	always @(posedge clk, negedge btn) begin
 		if (!btn) begin
