@@ -2,7 +2,7 @@
 
 module exmem #(parameter WIDTH = 16, RAM_ADDR_BITS = 16)
    (input clk, rst, en,
-    input memwrite, memread,
+    input memwrite, memread, link,
     input [RAM_ADDR_BITS-1:0] adr,
     input [WIDTH-1:0] writedata,
 	 input [4:0] pc,
@@ -32,11 +32,15 @@ module exmem #(parameter WIDTH = 16, RAM_ADDR_BITS = 16)
 		// $readmemh("/home/pzamani/Downloads/FullSystem-master_Previous/FullSystem-master/RunFullTest_V2.dat", ram);
 		 
 		/* Kris' Path*/
-		$readmemh("C:\\Users\\u1014583\\Documents\\School\\ECE 3710 - Computer Design Lab\\HexDefenders\\FullSystem\\RunFullTest_V2.dat", ram);
+		//$readmemh("C:\\Users\\u1014583\\Documents\\School\\ECE 3710 - Computer Design Lab\\HexDefenders\\FullSystem\\RunFullTest_V2.dat", ram);
 		
 		/* Cameron's Path */
 //		$readmemh("C:\\intelFPGA_lite\\18.1\\FullSystem-master\\RunFullTest_V3.dat", ram);
 
+
+		/* Kressa's Path*/
+		$readmemh("C:\\Users\\brand\\Documents\\HW_FA19\\FullSystem-master\\FullSystem-master\\RunFullTest_V3.dat", ram);
+	
  // This "always" block simulates as a RAM, and synthesizes to a block
  // RAM on the Spartan-3E part. Note that the RAM is clocked. Reading
  // and writing happen on the rising clock edge. This is very important
@@ -60,11 +64,12 @@ module exmem #(parameter WIDTH = 16, RAM_ADDR_BITS = 16)
 		instruction <= ram[pc];
 		
       if (en) begin
-         if (memwrite) begin
+         if (memwrite) 
             ram[adr] <= writedata;
-			end
 			if (memread)
 				memdata <= ram[adr];
+			if (link)
+				memdata <= pc + 1'b1;
       end
 		else begin
 			if (adr == 16'h002D && instruction[7:4] == 4'b0100) begin

@@ -1,11 +1,11 @@
-module dataPath(clk, memdata, instruction, aluControl, exMemResultEn, pcRegEn, srcRegEn, dstRegEn, immRegEn, resultRegEn, signEn, 
-					 regFileEn, pcRegMuxEn, mux4En, shiftALUMuxEn, irS, regImmMuxEn, regpcCont, srcData, dstData, adr, signOut, C, L, F, Z, N);
+module dataPath(clk, memdata, instruction, aluControl, exMemResultEn, pcRegEn, srcRegEn, dstRegEn, immRegEn, signEn, 
+					 regFileEn, pcRegMuxEn, mux4En, shiftALUMuxEn, irS, regImmMuxEn, srcData, dstData, adr, signOut, C, L, F, Z, N);
 	input clk;
 	input [15:0] instruction, memdata;
 	input [3:0] aluControl;
 	//why are some mux 2 control signals 2 bits?
-	input pcRegEn, srcRegEn, dstRegEn, immRegEn, resultRegEn, signEn, regFileEn, pcRegMuxEn, shiftALUMuxEn, regImmMuxEn, irS;
-	input [1:0] mux4En, regpcCont, exMemResultEn;
+	input pcRegEn, srcRegEn, dstRegEn, immRegEn, signEn, regFileEn, pcRegMuxEn, shiftALUMuxEn, regImmMuxEn, irS;
+	input [1:0] mux4En, exMemResultEn;
 	wire [3:0] src, dst, Rsrc, Rdest, OpCode, OpCodeExt;
 	wire [15:0] result, exMemOrResult, shiftOrALU, regFileResult, pcOrReg, mux4Out, aluResult, regOrImm, shiftOut;
 	wire [7:0] instImm, imm;
@@ -38,6 +38,6 @@ module dataPath(clk, memdata, instruction, aluControl, exMemResultEn, pcRegEn, s
 	mux2 shiftOrALUMux(.d0(aluResult), .d1(shiftOut), .s(shiftALUMuxEn), .y(shiftOrALU));
 	
 	//d1 use to be pc, could be updated to mux2
-	mux4 srcRegOrPCMux(.d0(srcData), .d1(0), .d2(result), .d3(0), .s(regpcCont), .y(adr));
+	//mux4 srcRegOrPCMux(.d0(srcData), .d1(0), .d2(result), .d3(0), .s(regpcCont), .y(adr));
 
 endmodule 
