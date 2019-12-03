@@ -19,7 +19,7 @@ module en_counter #(parameter CLK_PERIOD = 50)
 	
 	integer counter = 0;
 	
-	always @(posedge clk, negedge btn) begin
+	always @(posedge clk) begin
 		if (!btn) begin
 			counter <= 0;
 			en <= 1'b1;

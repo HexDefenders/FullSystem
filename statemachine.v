@@ -1,10 +1,10 @@
 module statemachine(clk, reset, C, L, F, Z, N, instruction, aluControl, pcRegEn, srcRegEn, dstRegEn, immRegEn, signEn,
-						regFileEn, pcRegMuxEn, mux4En, shiftALUMuxEn, regImmMuxEn, exMemResultEn, memread, memwrite, link, pcEn, irS);
+						regFileEn, pcRegMuxEn, mux4En, shiftALUMuxEn, regImmMuxEn, exMemResultEn, memread, memwrite, link, pcEn, irS, pcAdrMuxEn);
 	input clk, reset, C, L, F, Z, N;
 	input [15:0] instruction;
 	output reg [3:0] aluControl;
 	output reg pcRegEn, srcRegEn, dstRegEn, immRegEn, signEn, regFileEn, pcRegMuxEn, shiftALUMuxEn, regImmMuxEn, 
-							memread, memwrite, link, irS;
+							memread, memwrite, link, irS, pcAdrMuxEn;
 	output reg [1:0] mux4En, pcEn, exMemResultEn;
 	reg [5:0] PS, NS;
 	parameter [5:0] FETCH = 6'd0, DECODE = 6'd1, ADD = 6'd2, SUB = 6'd3, CMP = 6'd4, AND = 6'd5, OR = 6'd6, XOR = 6'd7, MOV = 6'd8, LOAD = 6'd9, STOR = 6'd10, 
@@ -19,7 +19,7 @@ module statemachine(clk, reset, C, L, F, Z, N, instruction, aluControl, pcRegEn,
 	always@(clk, reset, instruction, PS) begin
 		// initialize control signals
 		{pcRegEn, srcRegEn, dstRegEn, immRegEn, signEn, regFileEn, pcRegMuxEn, 
-		shiftALUMuxEn, regImmMuxEn, memread, memwrite, link, irS} <= 1'd0;
+		shiftALUMuxEn, regImmMuxEn, memread, memwrite, link, irS, pcAdrMuxEn} <= 1'd0;
 		{mux4En, pcEn, exMemResultEn} <= 2'b0;
 		aluControl <= 4'b0;
 		NS <= 6'b0;
@@ -86,8 +86,8 @@ module statemachine(clk, reset, C, L, F, Z, N, instruction, aluControl, pcRegEn,
 							NS <= STOR;
 						end
 						else if (instruction[7:4] == 4'b1000) begin // JAL
-//							srcRegEn <= 1;
-//							dstRegEn <= 1;
+							srcRegEn <= 1;
+							dstRegEn <= 1;
 							NS <= JAL;
 						end
 						else if (instruction[7:4] == 4'b1100) begin // Jcond
@@ -257,6 +257,7 @@ module statemachine(clk, reset, C, L, F, Z, N, instruction, aluControl, pcRegEn,
 				regFileEn <= 1;
 				link <= 1;
 				exMemResultEn <= 2'b1;
+				pcAdrMuxEn <= 1;
 				NS <= FETCH; 
 			end
 			

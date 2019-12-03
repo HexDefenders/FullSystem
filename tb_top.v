@@ -22,12 +22,11 @@ module tb_top();
 		rst = 0; #10;
 		rst = 1; #1000;
 		
-		gpio1[25] = 1; #100000;
+		
+		{gpio1[32],gpio1[33],gpio1[30],gpio1[31],gpio1[28],gpio1[29],gpio1[26],gpio1[27]} = 8'hC3;
+		gpio1[25] = 1; #200000;
 		gpio1[25] = 0; #2000;
 		
-		
-		gpio1[25] = 1; #1000;
-		gpio1[25] = 0; #20;
 		
 		//Pre-existing values hardcoded into Registers
 		//R[1] = 2

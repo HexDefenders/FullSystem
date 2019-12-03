@@ -1,22 +1,24 @@
 `timescale 1ns / 1ps
 
 module exmem #(parameter WIDTH = 16, RAM_ADDR_BITS = 16)
-   (input clk, rst, en,
+   (input clk, rst, en,	
+    input [8:0] pc,
     input memwrite, memread, link,
     input [RAM_ADDR_BITS-1:0] adr,
     input [WIDTH-1:0] writedata,
-	 input [4:0] pc,
+	 input playerInputFlag,
+	 input [1:0] firstPlayerFlag,
+	 input [7:0] switchInput,
     output reg [WIDTH-1:0] memdata,
 	 output reg [WIDTH-1:0] instruction,
 	 output reg [WIDTH-1:0] randomVal,
-	 output reg [WIDTH-1:0] p1, p2, p3, p4,
-	 input playerInputFlag
+	 output reg [WIDTH-1:0] p1, p2, p3, p4
     );
 	 
 	reg playerInputFlagReg;
 	wire [15:0] out;
 	//Currently 48 adressess available --> This will be expanded to 64k ultimately
-   reg [WIDTH-1:0] ram [(3*RAM_ADDR_BITS)-1:0];
+   reg [WIDTH-1:0] ram [(16*RAM_ADDR_BITS)-1:0];
 	
 	initial begin
 		
@@ -32,14 +34,14 @@ module exmem #(parameter WIDTH = 16, RAM_ADDR_BITS = 16)
 		// $readmemh("/home/pzamani/Downloads/FullSystem-master_Previous/FullSystem-master/RunFullTest_V2.dat", ram);
 		 
 		/* Kris' Path*/
-		//$readmemh("C:\\Users\\u1014583\\Documents\\School\\ECE 3710 - Computer Design Lab\\HexDefenders\\FullSystem\\RunFullTest_V2.dat", ram);
+		$readmemh("C:\\Users\\u1014583\\Documents\\School\\ECE 3710 - Computer Design Lab\\HexDefenders\\FullSystem\\test.dat", ram);
 		
 		/* Cameron's Path */
 //		$readmemh("C:\\intelFPGA_lite\\18.1\\FullSystem-master\\RunFullTest_V3.dat", ram);
 
 
 		/* Kressa's Path*/
-		$readmemh("C:\\Users\\brand\\Documents\\HW_FA19\\FullSystem-master\\FullSystem-master\\RunFullTest_V3.dat", ram);
+//		$readmemh("C:\\Users\\brand\\Documents\\HW_FA19\\FullSystem-master\\FullSystem-master\\RunFullTest_V3.dat", ram);
 	
  // This "always" block simulates as a RAM, and synthesizes to a block
  // RAM on the Spartan-3E part. Note that the RAM is clocked. Reading
@@ -58,8 +60,9 @@ module exmem #(parameter WIDTH = 16, RAM_ADDR_BITS = 16)
 	
 	always @(posedge clk) begin
 		//playerInputVal <= ram[/*adr for flag*/];
-		ram[16'h0024] <= out; //CHANGE THIS LATER WHEN MEM MAPPING IS EXPANDED
-		ram[16'd37] <= {15'b0,playerInputFlag};
+		ram[16'd141] <= out; //CHANGE THIS LATER WHEN MEM MAPPING IS EXPANDED
+		ram[16'd139] <= {15'b0,playerInputFlag};
+		ram[16'd140] <= switchInput;
 		
 		instruction <= ram[pc];
 		
@@ -72,12 +75,12 @@ module exmem #(parameter WIDTH = 16, RAM_ADDR_BITS = 16)
 				memdata <= pc + 1'b1;
       end
 		else begin
-			if (adr == 16'h002D && instruction[7:4] == 4'b0100) begin
+			if (adr == 16'd236 && instruction[7:4] == 4'b0100) begin
 				randomVal <= writedata;
-				p1 <= ram[16'd32]; //tEMP VALUES: NEEDS TO BE CHANGED LATER
-				p2 <= ram[16'd33];
-				p3 <= ram[16'd34];
-				p4 <= ram[16'd35];
+				p1 <= ram[16'd142]; //tEMP VALUES: NEEDS TO BE CHANGED LATER
+				p2 <= ram[16'd143];
+				p3 <= ram[16'd144];
+				p4 <= ram[16'd145];
 			end
 		
 		end
