@@ -27,17 +27,11 @@ module controllers (clk, rst, gpins, playerInput, playerInputFlag, allButtons, g
 	btn_debounce #(100000) bd3 (.clk(clk), .in_btn(gpins[16]), .out_btn(db_btn3));
 	btn_debounce #(100000) bd4 (.clk(clk), .in_btn(gpins[9]), .out_btn(db_btn4));
 	
-	btn_debounce #(50000)  _ms_btn1   (.clk(clk), .in_btn(gpins[37]), .out_btn(ms_btn1));
-	btn_debounce #(5000)   _sec5_btn1 (.clk(clk), .in_btn(ms_btn1), .out_btn(sec5_btn1));
+	sec5_counter _sec5_btn1 (.clk(clk), .in(gpins[37]), .out(sec5_btn1));
+	sec5_counter _sec5_btn2 (.clk(clk), .in(gpins[24]), .out(sec5_btn2));
+	sec5_counter _sec5_btn3 (.clk(clk), .in(gpins[16]), .out(sec5_btn3));
+	sec5_counter _sec5_btn4 (.clk(clk), .in(gpins[9]), .out(sec5_btn4));
 	
-	btn_debounce #(50000)  _ms_btn2   (.clk(clk), .in_btn(gpins[24]), .out_btn(ms_btn2));
-	btn_debounce #(5000)   _sec5_btn2 (.clk(clk), .in_btn(ms_btn2), .out_btn(sec5_btn2));
-	
-	btn_debounce #(50000)  _ms_btn3   (.clk(clk), .in_btn(gpins[16]), .out_btn(ms_btn3));
-	btn_debounce #(5000)   _sec5_btn3 (.clk(clk), .in_btn(ms_btn3), .out_btn(sec5_btn3));
-	
-	btn_debounce #(50000)  _ms_btn4   (.clk(clk), .in_btn(gpins[9]), .out_btn(ms_btn4));
-	btn_debounce #(5000)   _sec5_btn4 (.clk(clk), .in_btn(ms_btn4), .out_btn(sec5_btn4));
 	
 	assign led = sec5_btn1;
 	assign gameHasStarted = sec5_btn1 | sec5_btn2 | sec5_btn3 | sec5_btn4;
@@ -129,3 +123,30 @@ module controllers (clk, rst, gpins, playerInput, playerInputFlag, allButtons, g
 	);
 		
 endmodule 
+
+module sec5_counter (clk, rst, in, out);
+	input clk, rst, in;
+	output reg out;
+	
+	reg [27:0] counter;
+	
+	parameter[27:0] MAX = 28'd250000000;
+	
+	always @(posedge clk) begin
+		if (!rst) begin
+			counter <= 0;
+			out <= 0;
+		end
+		else if (in) begin
+			if (counter >= MAX) begin
+				out <= 1;
+			end
+			counter <= counter + 1;
+		end
+		else begin
+			out <= 0;
+			counter <= 0;
+		end
+	end
+
+endmodule

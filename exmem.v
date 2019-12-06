@@ -7,12 +7,13 @@ module exmem #(parameter WIDTH = 16, RAM_ADDR_BITS = 10)
     input [RAM_ADDR_BITS-1:0] adr,
     input [WIDTH-1:0] writedata,
 	 input playerInputFlag, allButtons, gameHasStarted,
-	 input [1:0] firstPlayerFlag, winnerPlayerNum, screenStatus,
+	 input [1:0] firstPlayerFlag,
 	 input [7:0] switchInput,
     output reg [WIDTH-1:0] memdata,
 	 output reg [WIDTH-1:0] instruction,
 	 output reg [WIDTH-1:0] randomVal,
 	 output reg [WIDTH-1:0] p1, p2, p3, p4,
+	 output reg [1:0] winnerPlayerNum, screenStatus,
 	 output reg [2:0] gameStatus
     );
 	 
@@ -68,13 +69,13 @@ module exmem #(parameter WIDTH = 16, RAM_ADDR_BITS = 10)
 		ram[16'd532] <= out; //CHANGE THIS LATER WHEN MEM MAPPING IS EXPANDED
 		
 		ram[16'd537] <= {15'b0, allButtons};
-		ram[16'd538] <= {14'b0, screenStatus};
 		ram[16'd539] <= {15'b0, gameHasStarted};
-		ram[16'd540] <= {14'b0, winnerPlayerNum};
 		
 		
 		instruction <= ram[pc];
 		gameStatus <= ram[16'd528];
+		winnerPlayerNum <= ram[16'd540];
+		screenStatus <= ram[16'd538];
 		
       if (en) begin
          if (memwrite) 
