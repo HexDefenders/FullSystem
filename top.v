@@ -1,7 +1,7 @@
 module top(clk, rst, gpio1, board_switches, board_btns, hsync, vsync, vga_blank_n, vga_clk, r, g, b);
 
 	input clk, rst;
-	input [35:0] gpio1;
+	input [40:1] gpio1;
 	input [9:0] board_switches;
 	input [3:1] board_btns;
 	output hsync, vsync, vga_blank_n, vga_clk;
@@ -42,12 +42,12 @@ module top(clk, rst, gpio1, board_switches, board_btns, hsync, vsync, vga_blank_
 	
 	vga vga (
 		.clk(clk), .rst(rst), 
-		.value(randomVal[7:0]), .p1(p1), .p2(p2), .p3(p3), .p4(p4), 
+		.value(randomVal[7:0]), .p1(p1), .p2(p2), .p3(p3), .p4(p4), .game_over(0),
 		.hsync(hsync), .vsync(vsync), .vga_blank_n(vga_blank_n), .vga_clk(vga_clk), .r(r), .g(g), .b(b)
 	);
 	
 	controllers controllers (
-		.clk(clk), .rst(rst), .board_switch(board_switches[0]), .gpins(gpio1), .playerInput(), .playerInputFlag(playerInputFlag), .firstPlayerFlag(firstPlayerFlag), .switchInput(switchInput)
+		.clk(clk), .rst(rst), .gpins(gpio1), .playerInput(), .playerInputFlag(playerInputFlag), .firstPlayerFlag(firstPlayerFlag), .switchInput(switchInput)
 	);
 
 	

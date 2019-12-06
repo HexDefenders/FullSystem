@@ -1,11 +1,11 @@
-module vga_control (clk, rst, value, p1, p2, p3, p4, gval, gbval, vga_blank_n, hsync, vsync, vga_clk, bright, mode, x_start, x_end, y_start, y_end, rgb_color, hcount, vcount);
+module vga_control (clk, rst, value, p1, p2, p3, p4, game_over, gval, gbval, vga_blank_n, hsync, vsync, vga_clk, bright, mode, x_start, x_end, y_start, y_end, rgb_color, hcount, vcount);
 	input			      clk, rst;
 	input	     [7:0]  value;
-	input		  [15:0] p1, p2, p3, p4;
+	input		  [15:0] p1, p2, p3, p4, game_over;
 	output				hsync, vsync;
 	output reg			vga_blank_n, vga_clk, bright;
 	output reg [1:0]	mode;
-	output reg [4:0]  gval, gbval;
+	output reg [5:0]  gval, gbval;
 	
 	// size of registers log2(800) ~ 10
 	//							log2(525) ~ 10
@@ -87,6 +87,14 @@ module vga_control (clk, rst, value, p1, p2, p3, p4, gval, gbval, vga_blank_n, h
 	parameter p_gl_y_start  = 10'd270;
 	
 	
+	// ###############################
+	//  GAME OVER Glyphs
+	// ###############################
+	parameter over_x_start = 10'd200;
+	parameter over_y_start = 10'd350;
+	parameter over_x_dim = 10'd50;
+	parameter over_y_dim = 10'd64;
+	
 
 	always @(posedge clk) begin
 		if (rst == 1'b0) begin
@@ -114,8 +122,8 @@ module vga_control (clk, rst, value, p1, p2, p3, p4, gval, gbval, vga_blank_n, h
 	assign vsync = ~((vcount >= VS_INIT + VS_START) & (vcount < VS_INIT + VS_START + VS_SYNC));
 	
 	always @(*) begin
-		gval  <= 5'h0;
-		gbval <= 5'h0;
+		gval  <= 6'h0;
+		gbval <= 6'h0;
 		rgb_color <= 23'h0;
 		x_start <= 10'd0;
 		x_end <= 10'd0;
@@ -136,11 +144,123 @@ module vga_control (clk, rst, value, p1, p2, p3, p4, gval, gbval, vga_blank_n, h
 			vga_blank_n <= 1'b0;
 		end
 		
+		if (game_over) begin
+			if ((vcount >= over_y_start) && (vcount < (over_y_start + over_y_dim))) begin
+				// G
+				if ((hcount >= (VS_START + over_x_start)) && (hcount < (VS_START + over_x_start + over_x_dim))) begin
+					gbval <= 6'd16;
+					
+					rgb_color <= rgb_text;
+					x_start 	 <= VS_START + over_x_start;
+					x_end 	 <= VS_START + over_x_start + over_x_dim;
+					y_start	 <= over_y_start;
+					y_end 	 <= over_y_start + main_y_dim;
+					mode		 <= MODE_64x64;
+				end
+				
+				// A
+				else if ((hcount >= (VS_START + over_x_start + over_x_dim)) && (hcount < (VS_START + over_x_start + 2*over_x_dim))) begin
+					gbval <= 6'ha;
+					
+					rgb_color <= rgb_text;
+					x_start 	 <= VS_START + over_x_start + over_x_dim;
+					x_end 	 <= VS_START + over_x_start + 2*over_x_dim;
+					y_start	 <= over_y_start;
+					y_end 	 <= over_y_start + main_y_dim;
+					mode		 <= MODE_64x64;
+				end
+				
+				// M
+				else if ((hcount >= (VS_START + over_x_start + 2*over_x_dim)) && (hcount < (VS_START + over_x_start + 3*over_x_dim))) begin
+					gbval <= 6'd22;
+					
+					rgb_color <= rgb_text;
+					x_start 	 <= VS_START + over_x_start + 2*over_x_dim;
+					x_end 	 <= VS_START + over_x_start + 3*over_x_dim;
+					y_start	 <= over_y_start;
+					y_end 	 <= over_y_start + main_y_dim;
+					mode		 <= MODE_64x64;
+				end
+				
+				// E
+				else if ((hcount >= (VS_START + over_x_start + 3*over_x_dim)) && (hcount < (VS_START + over_x_start + 4*over_x_dim))) begin
+					gbval <= 6'he;
+					
+					rgb_color <= rgb_text;
+					x_start 	 <= VS_START + over_x_start + 3*over_x_dim;
+					x_end 	 <= VS_START + over_x_start + 4*over_x_dim;
+					y_start	 <= over_y_start;
+					y_end 	 <= over_y_start + main_y_dim;
+					mode		 <= MODE_64x64;
+				end
+				
+				// O
+				else if ((hcount >= (VS_START + over_x_start + 5*over_x_dim)) && (hcount < (VS_START + over_x_start + 6*over_x_dim))) begin
+					gbval <= 6'd24;
+					
+					rgb_color <= rgb_text;
+					x_start 	 <= VS_START + over_x_start + 5*over_x_dim;
+					x_end 	 <= VS_START + over_x_start + 6*over_x_dim;
+					y_start	 <= over_y_start;
+					y_end 	 <= over_y_start + main_y_dim;
+					mode		 <= MODE_64x64;
+				end
+				
+				// V
+				else if ((hcount >= (VS_START + over_x_start + 6*over_x_dim)) && (hcount < (VS_START + over_x_start + 7*over_x_dim))) begin
+					gbval <= 6'd31;
+					
+					rgb_color <= rgb_text;
+					x_start 	 <= VS_START + over_x_start + 6*over_x_dim;
+					x_end 	 <= VS_START + over_x_start + 7*over_x_dim;
+					y_start	 <= over_y_start;
+					y_end 	 <= over_y_start + main_y_dim;
+					mode		 <= MODE_64x64;
+				end
+				
+				// E
+				else if ((hcount >= (VS_START + over_x_start + 7*over_x_dim)) && (hcount < (VS_START + over_x_start + 8*over_x_dim))) begin
+					gbval <= 6'he;
+					
+					rgb_color <= rgb_text;
+					x_start 	 <= VS_START + over_x_start + 7*over_x_dim;
+					x_end 	 <= VS_START + over_x_start + 8*over_x_dim;
+					y_start	 <= over_y_start;
+					y_end 	 <= over_y_start + main_y_dim;
+					mode		 <= MODE_64x64;
+				end
+				
+				// R
+				else if ((hcount >= (VS_START + over_x_start + 8*over_x_dim)) && (hcount < (VS_START + over_x_start + 9*over_x_dim))) begin
+					gbval <= 6'd27;
+					
+					rgb_color <= rgb_text;
+					x_start 	 <= VS_START + over_x_start + 8*over_x_dim;
+					x_end 	 <= VS_START + over_x_start + 9*over_x_dim;
+					y_start	 <= over_y_start;
+					y_end 	 <= over_y_start + main_y_dim;
+					mode		 <= MODE_64x64;
+				end
+				
+				// !
+				else if ((hcount >= (VS_START + over_x_start + 9*over_x_dim)) && (hcount < (VS_START + over_x_start + 10*over_x_dim))) begin
+					gbval <= 6'd39;
+					
+					rgb_color <= rgb_text;
+					x_start 	 <= VS_START + over_x_start + 9*over_x_dim;
+					x_end 	 <= VS_START + over_x_start + 10*over_x_dim;
+					y_start	 <= over_y_start;
+					y_end 	 <= over_y_start + main_y_dim;
+					mode		 <= MODE_64x64;
+				end
+			end
+		end
+		
 		// Player 1 Score glyphs
 		if ((vcount >= p_gl_y_start) && (vcount < (p_gl_y_start + p_y_dim))) begin
 			// P
 			if ((hcount >= VS_START + p1_gl_x_start) && (hcount < (VS_START + p1_gl_x_start + p_x_dim))) begin
-				gval <= 5'h10;
+				gval <= 6'd26;
 				
 				rgb_color <= rgb_text;
 				x_start 	 <= VS_START + p1_gl_x_start;
@@ -152,7 +272,7 @@ module vga_control (clk, rst, value, p1, p2, p3, p4, gval, gbval, vga_blank_n, h
 		
 			// 1
 			else if ((hcount >= VS_START + p1_gl_x_start + p_x_dim) && (hcount < (VS_START + p1_gl_x_start + 2*p_x_dim))) begin
-				gval <= 5'h01;
+				gval <= 6'h01;
 				
 				rgb_color <= rgb_text;
 				x_start 	 <= VS_START + p1_gl_x_start + p_x_dim;
@@ -164,7 +284,7 @@ module vga_control (clk, rst, value, p1, p2, p3, p4, gval, gbval, vga_blank_n, h
 		
 			// :
 			else if ((hcount >= VS_START + p1_gl_x_start + 2*p_x_dim) && (hcount < (VS_START + p1_gl_x_start + 3*p_x_dim))) begin
-				gval <= 5'h12;
+				gval <= 6'd38;
 				
 				rgb_color <= rgb_text;
 				x_start 	 <= VS_START + p1_gl_x_start + 2*p_x_dim;
@@ -174,9 +294,8 @@ module vga_control (clk, rst, value, p1, p2, p3, p4, gval, gbval, vga_blank_n, h
 				mode		 <= MODE_8x8;
 			end
 			
-			// 0 (TODO: change to show values)
 			else if ((hcount >= VS_START + p1_gl_x_start + 3*p_x_dim) && (hcount < (VS_START + p1_gl_x_start + 4*p_x_dim))) begin
-				gval <= 5'h00;
+				gval <= p1;
 				
 				rgb_color <= rgb_text;
 				x_start 	 <= VS_START + p1_gl_x_start + 3*p_x_dim;
@@ -189,7 +308,7 @@ module vga_control (clk, rst, value, p1, p2, p3, p4, gval, gbval, vga_blank_n, h
 		// Player 2 Score glyphs
 			// P
 			else if ((hcount >= VS_START + p2_gl_x_start) && (hcount < (VS_START + p2_gl_x_start + p_x_dim))) begin
-				gval <= 5'h10;
+				gval <= 6'd26;
 				
 				rgb_color <= rgb_text;
 				x_start 	 <= VS_START + p2_gl_x_start;
@@ -201,7 +320,7 @@ module vga_control (clk, rst, value, p1, p2, p3, p4, gval, gbval, vga_blank_n, h
 		
 			// 2
 			else if ((hcount >= VS_START + p2_gl_x_start + p_x_dim) && (hcount < (VS_START + p2_gl_x_start + 2*p_x_dim))) begin
-				gval <= 5'h02;
+				gval <= 6'h02;
 				
 				rgb_color <= rgb_text;
 				x_start 	 <= VS_START + p2_gl_x_start + p_x_dim;
@@ -213,7 +332,7 @@ module vga_control (clk, rst, value, p1, p2, p3, p4, gval, gbval, vga_blank_n, h
 		
 			// :
 			else if ((hcount >= VS_START + p2_gl_x_start + 2*p_x_dim) && (hcount < (VS_START + p2_gl_x_start + 3*p_x_dim))) begin
-				gval <= 5'h12;
+				gval <= 6'd38;
 				
 				rgb_color <= rgb_text;
 				x_start 	 <= VS_START + p2_gl_x_start + 2*p_x_dim;
@@ -223,9 +342,8 @@ module vga_control (clk, rst, value, p1, p2, p3, p4, gval, gbval, vga_blank_n, h
 				mode		 <= MODE_8x8;
 			end
 			
-			// 0 (TODO: change to show values)
 			else if ((hcount >= VS_START + p2_gl_x_start + 3*p_x_dim) && (hcount < (VS_START + p2_gl_x_start + 4*p_x_dim))) begin
-				gval <= 5'h00;
+				gval <= p2;
 				
 				rgb_color <= rgb_text;
 				x_start 	 <= VS_START + p2_gl_x_start + 3*p_x_dim;
@@ -238,7 +356,7 @@ module vga_control (clk, rst, value, p1, p2, p3, p4, gval, gbval, vga_blank_n, h
 		// Player 3 Score glyphs
 			// P
 			else if ((hcount >= VS_START + p3_gl_x_start) && (hcount < (VS_START + p3_gl_x_start + p_x_dim))) begin
-				gval <= 5'h10;
+				gval <= 6'd26;
 				
 				rgb_color <= rgb_text;
 				x_start 	 <= VS_START + p3_gl_x_start;
@@ -250,7 +368,7 @@ module vga_control (clk, rst, value, p1, p2, p3, p4, gval, gbval, vga_blank_n, h
 		
 			// 3
 			else if ((hcount >= VS_START + p3_gl_x_start + p_x_dim) && (hcount < (VS_START + p3_gl_x_start + 2*p_x_dim))) begin
-				gval <= 5'h03;
+				gval <= 6'h03;
 				
 				rgb_color <= rgb_text;
 				x_start 	 <= VS_START + p3_gl_x_start + p_x_dim;
@@ -262,7 +380,7 @@ module vga_control (clk, rst, value, p1, p2, p3, p4, gval, gbval, vga_blank_n, h
 		
 			// :
 			else if ((hcount >= VS_START + p3_gl_x_start + 2*p_x_dim) && (hcount < (VS_START + p3_gl_x_start + 3*p_x_dim))) begin
-				gval <= 5'h12;
+				gval <= 6'd38;
 				
 				rgb_color <= rgb_text;
 				x_start 	 <= VS_START + p3_gl_x_start + 2*p_x_dim;
@@ -272,9 +390,8 @@ module vga_control (clk, rst, value, p1, p2, p3, p4, gval, gbval, vga_blank_n, h
 				mode		 <= MODE_8x8;
 			end
 			
-			// 0 (TODO: change to show values)
 			else if ((hcount >= VS_START + p3_gl_x_start + 3*p_x_dim) && (hcount < (VS_START + p3_gl_x_start + 4*p_x_dim))) begin
-				gval <= 5'h00;
+				gval <= p3;
 				
 				rgb_color <= rgb_text;
 				x_start 	 <= VS_START + p3_gl_x_start + 3*p_x_dim;
@@ -287,7 +404,7 @@ module vga_control (clk, rst, value, p1, p2, p3, p4, gval, gbval, vga_blank_n, h
 		// Player 4 Score glyphs
 			// P
 			else if ((hcount >= VS_START + p4_gl_x_start) && (hcount < (VS_START + p4_gl_x_start + p_x_dim))) begin
-				gval <= 5'h10;
+				gval <= 6'd26;
 				
 				rgb_color <= rgb_text;
 				x_start 	 <= VS_START + p4_gl_x_start;
@@ -299,7 +416,7 @@ module vga_control (clk, rst, value, p1, p2, p3, p4, gval, gbval, vga_blank_n, h
 		
 			// 4
 			else if ((hcount >= VS_START + p4_gl_x_start + p_x_dim) && (hcount < (VS_START + p4_gl_x_start + 2*p_x_dim))) begin
-				gval <= 5'h04;
+				gval <= 6'h4;
 				
 				rgb_color <= rgb_text;
 				x_start 	 <= VS_START + p4_gl_x_start + p_x_dim;
@@ -311,7 +428,7 @@ module vga_control (clk, rst, value, p1, p2, p3, p4, gval, gbval, vga_blank_n, h
 		
 			// :
 			else if ((hcount >= VS_START + p4_gl_x_start + 2*p_x_dim) && (hcount < (VS_START + p4_gl_x_start + 3*p_x_dim))) begin
-				gval <= 5'h12;
+				gval <= 6'd38;
 				
 				rgb_color <= rgb_text;
 				x_start 	 <= VS_START + p4_gl_x_start + 2*p_x_dim;
@@ -321,9 +438,8 @@ module vga_control (clk, rst, value, p1, p2, p3, p4, gval, gbval, vga_blank_n, h
 				mode		 <= MODE_8x8;
 			end
 			
-			// 0 (TODO: change to show values)
 			else if ((hcount >= VS_START + p4_gl_x_start + 3*p_x_dim) && (hcount < (VS_START + p4_gl_x_start + 4*p_x_dim))) begin
-				gval <= 5'h00;
+				gval <= p4;
 				
 				rgb_color <= rgb_text;
 				x_start 	 <= VS_START + p4_gl_x_start + 3*p_x_dim;
@@ -381,7 +497,7 @@ module vga_control (clk, rst, value, p1, p2, p3, p4, gval, gbval, vga_blank_n, h
 		else if ((vcount >= main_y_start) && (vcount < (main_y_start + main_y_dim))) begin
 			// 0
 			if ((hcount >= main_x_start) && (hcount < (main_x_start + main_x_dim))) begin
-				gbval <= 5'h0;
+				gbval <= 6'h0;
 				
 				rgb_color <= rgb_text;
 				x_start   <= VS_START + main_x_start;
@@ -393,7 +509,7 @@ module vga_control (clk, rst, value, p1, p2, p3, p4, gval, gbval, vga_blank_n, h
 			
 			// x
 			else if ((hcount >= (main_x_start + main_x_dim)) && (hcount < (main_x_start + main_x_dim + main_x_dim))) begin
-				gbval <= 5'h11;
+				gbval <= 6'd37;
 				
 				rgb_color <= rgb_text;
 				x_start   <= VS_START + main_x_start + main_x_dim;

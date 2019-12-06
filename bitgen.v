@@ -28,7 +28,7 @@ module bitgen(bright, hcount, vcount, glyph, bglyph, mode, x_start, x_end, y_sta
 	//  Large Font configurations
 	// ###############################
 	
-	wire [0:63] lbglyph [63:0];
+	wire [0:63] lbglyph [0:63];
 	assign lbglyph[0] = bglyph[4095:4032];
 	assign lbglyph[1] = bglyph[4031:3968];
 	assign lbglyph[2] = bglyph[3967:3904];
@@ -93,7 +93,10 @@ module bitgen(bright, hcount, vcount, glyph, bglyph, mode, x_start, x_end, y_sta
 	assign lbglyph[61] = bglyph[191:128];
 	assign lbglyph[62] = bglyph[127:64];
 	assign lbglyph[63] = bglyph[63:0];
-	
+
+
+
+
 	// ###############################
 	//  Colors
 	// ###############################	
@@ -118,6 +121,14 @@ module bitgen(bright, hcount, vcount, glyph, bglyph, mode, x_start, x_end, y_sta
 					// 64x64 text
 					2'b10: begin
 						if (lbglyph[vcount-y_start][hcount-x_start] == 1'b1)
+							rgbout <= rgb_color;
+					end
+					
+					// inverted 8x8 text
+					2'b11: begin
+						if (lglyph[vcount-y_start][hcount-x_start] == 1'b1)
+							rgbout <= rgb_bg;
+						else
 							rgbout <= rgb_color;
 					end
 					

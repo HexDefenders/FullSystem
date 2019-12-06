@@ -1,0 +1,156 @@
+#########################################################################
+# This script is for testing the functionality of the entire game system,
+# specifically the interaction between the application, processor, and I/O
+# devices. Although this script is just for testing, we wanted to replicate
+# a portion of the application we will need when programming the actual
+# application: displaying the random numbers on the screen via the VGA.
+#
+# This script will display the random number generated from the LFSR on the VGA
+# screen. It will then read some input from a button press, and flash the screen
+# with the color of the controller that sent in the signal.
+#
+# Group 6
+# Last Edited: 12/1/2019
+#########################################################################
+
+
+SETUP:
+
+# Assuming Random number from LFSR is stored at memory address 0x0024
+# Note about LFSR: The LFSR(random number generator register) is implemented in hardware
+#            and will continuously generate a random number with every clock cycle.
+#                This code is on git. Because this is continuous, in the actual application
+#                     I plan to store the random value for the current round in a different adr
+#                       in memory. This can be seen in the memory mapping in our documentation.
+.lfsr 0x008D;
+stor R0, .lfsr;    #default random value = 0
+
+# Assuming the VGA address in I/O space @ memory address 0x002D
+.vga 0x00EC;
+
+# Assuming "PlayerInputFlag" value is stored at memory address 0x0025
+.playerInputFlag 0x008B;
+
+# Assuming "FirstPlayerFlag" value is stored at memory address 0x0026
+.firstPlayerFlag 0x008A;
+
+# Assuming the first player's switch input value is stored at memory address 0x0027
+.switchValueAdr 0x008C;
+
+
+DisplayRandomValue:
+load R4, .lfsr;    # Load random number from LFSR adr s.t. R4 = random number
+stor R4, .vga;    # Display random number on VGA screen
+
+
+
+Main:
+
+# Jump to Main Menu
+
+
+# Jump to WaitForPlayer
+#movi $29, R14;
+#movi $1, R15;
+jal R15, WaitForPlayer;
+#jal R15, R14;
+
+# Jump to NothingLoop to wait for player to release button
+#movi $37, R14;
+#movi $1, R15;
+jal R15, NothingLoop;
+#jal R15, R14;
+
+# Load first player's switch input to R9
+load R9, .switchValueAdr;
+
+# Jump to CheckCorrectness
+#movi $45, R14;
+#movi $1, R15;
+jal R15, CheckCorrectness;
+#jal R15, R14;
+
+
+# Go to next round
+juc DisplayRandomValue;
+
+
+EndMain:
+   juc EndMain;
+
+
+
+
+##################
+# HELPER FUNCTIONS
+##################
+
+#
+# Function that waits until player input is recieved
+#
+WaitForPlayer:
+   # Once better defined in whole system --> add function caller/callee protocol
+   load R6, .playerInputFlag;  # Load PlayerInputFlag value into R6
+   cmp  R6, R0;  # If (PlayerInput == 0)
+   jeq  WaitForPlayer;             #   loop again
+   juc  R15;                           # Function ends
+
+#
+# Function does nothing until button is released
+#
+NothingLoop:
+   load R6, .playerInputFlag;         # Reloads PlayerInputFlag value into R6
+   cmpi $1, R6;
+   jeq NothingLoop;
+   juc  R15;            # Function ends
+
+
+#
+# Function checks if the player's input is correct answer
+#
+CheckCorrectness:
+   cmp    R4, R9;                 # If (LFSR value != switch value)
+   jne   Main;                      #  begin waiting process again
+   #jne  WaitForPlayer;             #   jump to WaitForPlayerFunction
+                                        ###possibly come back and add a screen display before this.
+   load R10, .firstPlayerFlag;                        # Load firstPlayerFlag into R10
+
+   # Determine who the first player was:
+   cmp R0, R10;          # If(first player == 0) a.k.a Player 1
+   jeq awardFirstPlayer;  #   jump to award first player's point
+   cmpi $1, R10;            # If(first player == 1) a.k.a Player 2
+   jeq awardSecPlayer;        #   jump to award second player's point
+   cmpi $2, R10;                # If(first player == 2) a.k.a Player 3
+   jeq awardThirdPlayer;  #   jump to award third player's point
+   cmpi $3, R10;            # If(first player == 3) a.k.a Player 4
+   jeq awardFourthPlayer; #  jump to award fourth player's point
+
+   awardFirstPlayer:
+      movi 0x8E, R11;   # assuming Player 1's point lives in memory location 0xb100
+      lui 0x00, R11;
+      juc incrementPt;  # jump to increment point;
+
+   awardSecPlayer:
+      movi 0x8F, R11;   # assuming Player 2's point lives in memory location 0xb101
+      lui 0x00, R11;
+      juc incrementPt;    # jump to increment point;
+
+   awardThirdPlayer:
+      movi 0x90, R11;   # assuming Player 3's point lives in memory location 0xb102
+      lui 0x00, R11;
+      juc incrementPt;  # jump to increment point;
+
+   awardFourthPlayer:
+      movi 0x91, R11;   # assuming Player 3's point lives in memory location 0xb103
+      lui 0x00, R11;
+      juc incrementPt;    # jump to increment point;
+
+   incrementPt:
+      load R12, R11;            # Load Player's current point value into R12
+      addi $1, R12;               # Player's current points + 1
+      stor R12, R11;                # Store Player's updated point back into memory
+      juc CheckCorrectnessEnd;
+
+CheckCorrectnessEnd:
+   juc  R15;            # Function ends
+

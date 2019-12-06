@@ -32,9 +32,10 @@ module exmem #(parameter WIDTH = 16, RAM_ADDR_BITS = 16)
 		
 		/* Tara's Path */	
 		// $readmemh("/home/pzamani/Downloads/FullSystem-master_Previous/FullSystem-master/RunFullTest_V2.dat", ram);
-		 
+		// $readmemh("/home/pzamani/Documents/FullSystem/test.dat", ram);
+		
 		/* Kris' Path*/
-		$readmemh("/home/pzamani/Documents/FullSystem/test.dat", ram);
+		$readmemh("C:\\Users\\u1014583\\Documents\\School\\ECE 3710 - Computer Design Lab\\HexDefenders\\FullSystem\\test.dat", ram);
 		
 		/* Cameron's Path */
 //		$readmemh("C:\\intelFPGA_lite\\18.1\\FullSystem-master\\RunFullTest_V3.dat", ram);
