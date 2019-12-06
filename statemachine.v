@@ -91,6 +91,7 @@ module statemachine(clk, reset, C, L, F, Z, N, instruction, aluControl, pcRegEn,
 							NS <= JAL;
 						end
 						else if (instruction[7:4] == 4'b1100) begin // Jcond
+							srcRegEn <= 1;
 							NS <= JCOND;
 						end
 					end
@@ -263,6 +264,7 @@ module statemachine(clk, reset, C, L, F, Z, N, instruction, aluControl, pcRegEn,
 			
 			JCOND: begin 
 				pcEn <= 2'b01; // Initialize pcEn to pc += 1
+				pcAdrMuxEn <= 1;
 				case(instruction[11:8])
 					4'b0000: // EQ Equal
 						if (Z == 1)

@@ -18,6 +18,8 @@ module top(clk, rst, gpio1, board_switches, board_btns, hsync, vsync, vga_blank_
 	
 	reg en;
 	
+	/* TEST */
+	//programcounter programcounter(.clk(clk), .rst(rst), .en(pcEn), .newAdr(scrData), .imm(imm), .nextpc(nextpc));
 	
 	programcounter programcounter(.clk(clk), .rst(rst), .en(pcEn), .newAdr(newAdr), .imm(imm), .nextpc(nextpc));
 	
