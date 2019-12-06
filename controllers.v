@@ -3,10 +3,13 @@ module controllers (clk, rst, gpins, playerInput, playerInputFlag, firstPlayerFl
 	input	     	[40:1]	gpins;
 	input		  	[15:0] 	playerInput;
 	output reg				playerInputFlag;
-	output reg 	 [1:0]	firstPlayerFlag;
+	output wire	 [1:0]	firstPlayerFlag;
 	output		 [7:0]	switchInput;
 	
 	wire [7:0] mux4playeroutput, mux2playeroutput;
+	
+	reg  [1:0] firstPlayerFlagRaw;
+	reg 		  firstPlayerFlagEn;
 	
 	// Players Input Mapping
 	wire [7:0] p1_sw, p2_sw, p3_sw, p4_sw;
@@ -39,24 +42,29 @@ module controllers (clk, rst, gpins, playerInput, playerInputFlag, firstPlayerFl
 	// than the default of all 0's.
 	always @(rst, p1_btn, p2_btn, p3_btn, p4_btn) begin
 		if (p1_btn) begin
-			firstPlayerFlag = 2'b00;
+			firstPlayerFlagRaw = 2'b00;
+			firstPlayerFlagEn = 1'b1;
 			playerInputFlag = 1'b1;
 		end
 		else if (p2_btn) begin
-			firstPlayerFlag = 2'b01;
+			firstPlayerFlagRaw = 2'b01;
+			firstPlayerFlagEn = 1'b1;
 			playerInputFlag = 1'b1;
 		end
 		else if (p3_btn) begin
-			firstPlayerFlag = 2'b10;
+			firstPlayerFlagRaw = 2'b10;
+			firstPlayerFlagEn = 1'b1;
 			playerInputFlag = 1'b1;
 		end
 		else if (p4_btn) begin
-			firstPlayerFlag = 2'b11;
+			firstPlayerFlagRaw = 2'b11;
+			firstPlayerFlagEn = 1'b1;
 			playerInputFlag = 1'b1;
 		end
 		else begin
 			playerInputFlag = 1'b0;
-			firstPlayerFlag = 2'b00;
+			firstPlayerFlagEn = 1'b0;
+			firstPlayerFlagRaw = 2'b00;
 		end
 	end
 	
@@ -73,7 +81,7 @@ module controllers (clk, rst, gpins, playerInput, playerInputFlag, firstPlayerFl
 		.d0(8'b0), 					// 0 - default
 		.d1(mux4playeroutput), 	// 1 - player
 		.s(playerInputFlag), 	// select
-		.y(mux2playeroutput)			// output
+		.y(mux2playeroutput)		// output
 	);
 	
 	register #(8) switchInputReg(
@@ -82,6 +90,12 @@ module controllers (clk, rst, gpins, playerInput, playerInputFlag, firstPlayerFl
 		.clk(clk), 
 		.Q(switchInput)
 	);
-
+	
+	register #(2) playerInputFlagReg(
+		.D(firstPlayerFlagRaw),
+		.En(firstPlayerFlagEn),
+		.clk(clk),
+		.Q(firstPlayerFlag)
+	);
 		
 endmodule 
