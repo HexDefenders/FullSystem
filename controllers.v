@@ -1,8 +1,8 @@
-module controllers (clk, rst, gpins, playerInput, playerInputFlag, firstPlayerFlag, switchInput);
+module controllers (clk, rst, gpins, playerInput, playerInputFlag, allButtons, firstPlayerFlag, switchInput);
 	input						clk, rst;
 	input	     	[40:1]	gpins;
 	input		  	[15:0] 	playerInput;
-	output reg				playerInputFlag;
+	output reg				playerInputFlag, allButtons;
 	output wire	 [1:0]	firstPlayerFlag;
 	output		 [7:0]	switchInput;
 	
@@ -41,30 +41,41 @@ module controllers (clk, rst, gpins, playerInput, playerInputFlag, firstPlayerFl
 	// playerInputFlag to 1 in order to use the player's input rather 
 	// than the default of all 0's.
 	always @(rst, p1_btn, p2_btn, p3_btn, p4_btn) begin
-		if (p1_btn) begin
+		if (p1_btn & p2_btn & p3_btn & p4_btn) begin
+			firstPlayerFlagRaw = 2'b00;
+			firstPlayerFlagEn = 1'b0;
+			playerInputFlag = 1'b0;
+			allButtons = 1'b1;
+		end
+		else if (p1_btn) begin
 			firstPlayerFlagRaw = 2'b00;
 			firstPlayerFlagEn = 1'b1;
 			playerInputFlag = 1'b1;
+			allButtons = 1'b0;
 		end
 		else if (p2_btn) begin
 			firstPlayerFlagRaw = 2'b01;
 			firstPlayerFlagEn = 1'b1;
 			playerInputFlag = 1'b1;
+			allButtons = 1'b0;
 		end
 		else if (p3_btn) begin
 			firstPlayerFlagRaw = 2'b10;
 			firstPlayerFlagEn = 1'b1;
 			playerInputFlag = 1'b1;
+			allButtons = 1'b0;
 		end
 		else if (p4_btn) begin
 			firstPlayerFlagRaw = 2'b11;
 			firstPlayerFlagEn = 1'b1;
 			playerInputFlag = 1'b1;
+			allButtons = 1'b0;
 		end
 		else begin
 			playerInputFlag = 1'b0;
 			firstPlayerFlagEn = 1'b0;
 			firstPlayerFlagRaw = 2'b00;
+			allButtons = 1'b0;
 		end
 	end
 	

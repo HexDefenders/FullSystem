@@ -6,7 +6,7 @@ module exmem #(parameter WIDTH = 16, RAM_ADDR_BITS = 16)
     input memwrite, memread, link,
     input [RAM_ADDR_BITS-1:0] adr,
     input [WIDTH-1:0] writedata,
-	 input playerInputFlag,
+	 input playerInputFlag, allButtons, gameOver,
 	 input [1:0] firstPlayerFlag,
 	 input [7:0] switchInput,
     output reg [WIDTH-1:0] memdata,
@@ -64,6 +64,9 @@ module exmem #(parameter WIDTH = 16, RAM_ADDR_BITS = 16)
 		ram[16'd141] <= out; //CHANGE THIS LATER WHEN MEM MAPPING IS EXPANDED
 		ram[16'd139] <= {15'b0,playerInputFlag};
 		ram[16'd140] <= switchInput;
+		ram[16'd138] <= firstPlayerFlag;
+		ram[16'd146] <= allButtons;
+		ram[16'd147] <= gameOver;
 		
 		instruction <= ram[pc];
 		

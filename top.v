@@ -35,15 +35,15 @@ module top(clk, rst, gpio1, board_switches, board_btns, hsync, vsync, vga_blank_
 					.C(C), .L(L), .F(F), .Z(Z), .N(N));
 
 	exmem mem(
-		.clk(~clk), .rst(rst), .en(en), .pc(nextpc), .memwrite(memwrite), .memread(memread), .link(link),
+		.clk(~clk), .rst(rst), .en(en), .pc(nextpc), .memwrite(memwrite), .memread(memread), .link(link), .gameOver(gameOver), .allButtons(allButtons),
 		.adr(srcData), .writedata(dstData), .playerInputFlag(playerInputFlag), .firstPlayerFlag(firstPlayerFlag), .switchInput(switchInput), .memdata(memdata), .instruction(instruction), .randomVal(randomVal),
 		.p1(p1), .p2(p2), .p3(p3), .p4(p4)
 	);
 	
 	vga vga (
-		.clk(clk), .rst(rst), 
-		.value(randomVal[7:0]), .p1(p1), .p2(p2), .p3(p3), .p4(p4), .game_over(0),
-		.hsync(hsync), .vsync(vsync), .vga_blank_n(vga_blank_n), .vga_clk(vga_clk), .r(r), .g(g), .b(b)
+		.clk(clk), .rst(rst),
+		.value(randomVal[7:0]), .p1(p1), .p2(p2), .p3(p3), .p4(p4), .p1Btn(gpio1[37]), .p2Btn(gpio1[24]), .p3Btn(gpio1[16]), .p4Btn(gpio1[9]),
+		.gameOver(gameOver), .hsync(hsync), .vsync(vsync), .vga_blank_n(vga_blank_n), .vga_clk(vga_clk), .r(r), .g(g), .b(b)
 	);
 	
 	controllers controllers (

@@ -1,7 +1,7 @@
-module vga_control (clk, rst, value, p1, p2, p3, p4, game_over, gval, gbval, vga_blank_n, hsync, vsync, vga_clk, bright, mode, x_start, x_end, y_start, y_end, rgb_color, hcount, vcount);
-	input			      clk, rst;
+module vga_control (clk, rst, value, p1, p2, p3, p4, p1Btn, p2Btn, p3Btn, p4Btn, gameOver, gval, gbval, vga_blank_n, hsync, vsync, vga_clk, bright, mode, x_start, x_end, y_start, y_end, rgb_color, hcount, vcount);
+	input			      clk, rst, p1Btn, p2Btn, p3Btn, p4Btn;
 	input	     [7:0]  value;
-	input		  [15:0] p1, p2, p3, p4, game_over;
+	input		  [15:0] p1, p2, p3, p4, gameOver;
 	output				hsync, vsync;
 	output reg			vga_blank_n, vga_clk, bright;
 	output reg [1:0]	mode;
@@ -11,7 +11,10 @@ module vga_control (clk, rst, value, p1, p2, p3, p4, game_over, gval, gbval, vga
 	//							log2(525) ~ 10
 	output reg [9:0] 	x_start, x_end, y_start, y_end, hcount, vcount;
 	output reg [23:0] rgb_color;
+	
 	reg		 			counter;
+	
+	wire		  [23:0] rgb_p1, rgb_p2, rgb_p3, rgb_p4;
 	
 	// ###############################
 	//  Drawing Modes
@@ -19,7 +22,7 @@ module vga_control (clk, rst, value, p1, p2, p3, p4, game_over, gval, gbval, vga
 	
 	parameter MODE_BG 	= 2'b00;  	// background
 	parameter MODE_8x8 	= 2'b01; 	// 8x8 glyph
-	parameter MODE_64x64 = 2'b10;	// 64x64 glyph
+	parameter MODE_64x64 = 2'b10;		// 64x64 glyph
 	
 	
 	// ###############################
@@ -42,12 +45,24 @@ module vga_control (clk, rst, value, p1, p2, p3, p4, game_over, gval, gbval, vga
 	//  Colors
 	// ###############################
 	
-	parameter rgb_text = 24'h343a40;
-	parameter rgb_bg	 = 24'hf8f9fa;
-	parameter rgb_p1 	 = 24'hff2121;
-	parameter rgb_p2   = 24'h003fad;
-	parameter rgb_p3   = 24'hfff609;
-	parameter rgb_p4   = 24'h78dc52;
+	parameter rgb_text 	 = 24'h343a40;
+	parameter rgb_bg	 	 = 24'hf8f9fa;
+	
+	parameter rgb_p1_norm = 24'hbf1919;
+	parameter rgb_p1_lite = 24'hff2121;
+	assign	 rgb_p1 		 = p1Btn ? rgb_p1_lite : rgb_p1_norm; 
+	
+	parameter rgb_p2_norm = 24'h003fad;
+	parameter rgb_p2_lite = 24'h005cfa;
+	assign	 rgb_p2		 = p2Btn ? rgb_p2_lite : rgb_p2_norm;
+	
+	parameter rgb_p3_norm = 24'he6de09;
+	parameter rgb_p3_lite = 24'hfff609;
+	assign 	 rgb_p3		 = p3Btn ? rgb_p3_lite : rgb_p3_norm;
+	
+	parameter rgb_p4_norm = 24'h559C3A;
+	parameter rgb_p4_lite = 24'h78dc52;
+	assign	 rgb_p4		 = p4Btn ? rgb_p4_lite : rgb_p4_norm;
 	
 	
 	// ###############################
@@ -144,7 +159,7 @@ module vga_control (clk, rst, value, p1, p2, p3, p4, game_over, gval, gbval, vga
 			vga_blank_n <= 1'b0;
 		end
 		
-		if (game_over) begin
+		if (gameOver) begin
 			if ((vcount >= over_y_start) && (vcount < (over_y_start + over_y_dim))) begin
 				// G
 				if ((hcount >= (VS_START + over_x_start)) && (hcount < (VS_START + over_x_start + over_x_dim))) begin
@@ -492,9 +507,63 @@ module vga_control (clk, rst, value, p1, p2, p3, p4, game_over, gval, gbval, vga
 				mode		 <= MODE_BG;
 			end
 		end
-		
+	end
+	
+	// Start Menu
+	if (startMenu) begin
+		if ((vcount >= start_y_start) && (vcount < (start_y_start + start_y_dim))) begin
+			// H
+			if ((hcount >= start_x_start) && (vcount < (start_x_start + start_x_dim))) begin
+				gbval <= 6'd17;
+				
+				rgb_color <= rgb_text;
+				x_start   <= VS_START + start_x_start;
+				x_end     <= VS_START + start_x_start + start_x_dim;
+				y_start   <= start_y_start;
+				y_end     <= start_y_start + start_y_dim;
+				mode 		 <= MODE_64x64;
+			end
+			
+			// E
+			else if ((hcount >= (start_x_start + start_x_dim)) && (vcount < (start_x_start + 2*start_x_dim))) begin
+				gbval <= 6'd19;
+				
+				rgb_color <= rgb_text;
+				x_start   <= VS_START + start_x_start + start_x_dim;
+				x_end     <= VS_START + start_x_start + 2*start_x_dim;
+				y_start   <= start_y_start;
+				y_end     <= start_y_start + start_y_dim;
+				mode 		 <= MODE_64x64;
+			end
+			
+			// X
+			else if ((hcount >= (start_x_start + 2*start_x_dim)) && (vcount < (start_x_start + 3*start_x_dim))) begin
+				gbval <= 6'd33;
+				
+				rgb_color <= rgb_text;
+				x_start   <= VS_START + start_x_start + 2*start_x_dim;
+				x_end     <= VS_START + start_x_start + 3*start_x_dim;
+				y_start   <= start_y_start;
+				y_end     <= start_y_start + start_y_dim;
+				mode 		 <= MODE_64x64;
+			end
+			
+			// shield
+			else if ((hcount >= (start_x_start + 3*start_x_dim)) && (vcount < (start_x_start + 4*start_x_dim))) begin
+				gbval <= 6'd40;
+				
+				rgb_color <= rgb_text;
+				x_start   <= VS_START + start_x_start + 3*start_x_dim;
+				x_end     <= VS_START + start_x_start + 4*start_x_dim;
+				y_start   <= start_y_start;
+				y_end     <= start_y_start + start_y_dim;
+				mode 		 <= MODE_64x64;
+			end
+		end
+	end
+	else begin
 		// Load main value
-		else if ((vcount >= main_y_start) && (vcount < (main_y_start + main_y_dim))) begin
+		if ((vcount >= main_y_start) && (vcount < (main_y_start + main_y_dim))) begin
 			// 0
 			if ((hcount >= main_x_start) && (hcount < (main_x_start + main_x_dim))) begin
 				gbval <= 6'h0;
