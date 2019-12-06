@@ -1,10 +1,12 @@
-module controllers (clk, rst, gpins, playerInput, playerInputFlag, allButtons, firstPlayerFlag, switchInput);
+module controllers (clk, rst, gpins, playerInput, playerInputFlag, allButtons, gameHasStarted, firstPlayerFlag, switchInput, led);
 	input						clk, rst;
 	input	     	[40:1]	gpins;
 	input		  	[15:0] 	playerInput;
 	output reg				playerInputFlag, allButtons;
-	output wire	 [1:0]	firstPlayerFlag;
+	output					gameHasStarted;
+	output		 [1:0]	firstPlayerFlag;
 	output		 [7:0]	switchInput;
+	output					led;
 	
 	wire [7:0] mux4playeroutput, mux2playeroutput;
 	
@@ -15,6 +17,8 @@ module controllers (clk, rst, gpins, playerInput, playerInputFlag, allButtons, f
 	wire [7:0] p1_sw, p2_sw, p3_sw, p4_sw;
 	wire db_btn1, db_btn2, db_btn3, db_btn4;
 	wire p1_btn, p2_btn, p3_btn, p4_btn;
+	wire ms_btn1, ms_btn2, ms_btn3, ms_btn4;
+	wire sec5_btn1, sec5_btn2, sec5_btn3, sec5_btn4;
 	
 	// testing revealed ~2ms debounce time (50MHz clk * 2ms = 100,000)
 	//		waiting 100,000 cycles before reveals output of btn
@@ -22,6 +26,21 @@ module controllers (clk, rst, gpins, playerInput, playerInputFlag, allButtons, f
 	btn_debounce #(100000) bd2 (.clk(clk), .in_btn(gpins[24]), .out_btn(db_btn2));
 	btn_debounce #(100000) bd3 (.clk(clk), .in_btn(gpins[16]), .out_btn(db_btn3));
 	btn_debounce #(100000) bd4 (.clk(clk), .in_btn(gpins[9]), .out_btn(db_btn4));
+	
+	btn_debounce #(50000)  _ms_btn1   (.clk(clk), .in_btn(gpins[37]), .out_btn(ms_btn1));
+	btn_debounce #(5000)   _sec5_btn1 (.clk(clk), .in_btn(ms_btn1), .out_btn(sec5_btn1));
+	
+	btn_debounce #(50000)  _ms_btn2   (.clk(clk), .in_btn(gpins[24]), .out_btn(ms_btn2));
+	btn_debounce #(5000)   _sec5_btn2 (.clk(clk), .in_btn(ms_btn2), .out_btn(sec5_btn2));
+	
+	btn_debounce #(50000)  _ms_btn3   (.clk(clk), .in_btn(gpins[16]), .out_btn(ms_btn3));
+	btn_debounce #(5000)   _sec5_btn3 (.clk(clk), .in_btn(ms_btn3), .out_btn(sec5_btn3));
+	
+	btn_debounce #(50000)  _ms_btn4   (.clk(clk), .in_btn(gpins[9]), .out_btn(ms_btn4));
+	btn_debounce #(5000)   _sec5_btn4 (.clk(clk), .in_btn(ms_btn4), .out_btn(sec5_btn4));
+	
+	assign led = sec5_btn1;
+	assign gameHasStarted = sec5_btn1 | sec5_btn2 | sec5_btn3 | sec5_btn4;
 	
 	assign p1_sw = {gpins[35],gpins[21],gpins[33],gpins[23],gpins[31],gpins[25],gpins[39],gpins[27]};
 	assign p1_btn = db_btn1;

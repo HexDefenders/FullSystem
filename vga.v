@@ -1,7 +1,8 @@
-module vga (clk, rst, value, p1, p2, p3, p4, p1Btn, p2Btn, p3Btn, p4Btn, gameOver, hsync, vsync, vga_blank_n, vga_clk, r, g, b);
+module vga (clk, rst, value, p1, p2, p3, p4, p1Btn, p2Btn, p3Btn, p4Btn, screenStatus, winnerPlayerNum, hsync, vsync, vga_blank_n, vga_clk, r, g, b);
 	input		     clk, rst, p1Btn, p2Btn, p3Btn, p4Btn;
+	input  [1:0]  screenStatus, winnerPlayerNum;
 	input	 [7:0]  value;
-	input  [15:0] p1, p2, p3, p4, gameOver;
+	input  [15:0] p1, p2, p3, p4;
 
 	output		  hsync, vsync, vga_blank_n, vga_clk;
 	output [7:0]  r, g, b;
@@ -19,7 +20,7 @@ module vga (clk, rst, value, p1, p2, p3, p4, p1Btn, p2Btn, p3Btn, p4Btn, gameOve
 	
 	vga_control uut1 (
 		.clk(clk), .rst(rst), .value(value), .p1(p1), .p2(p2), .p3(p3), .p4(p4), .p1Btn(p1Btn), .p2Btn(p2Btn), .p3Btn(p3Btn), .p4Btn(p4Btn), 
-		.gameOver(gameOver), .gval(val), .gbval(bval), 
+		.screenStatus(screenStatus), .winnerPlayerNum(winnerPlayerNum), .gval(val), .gbval(bval), 
 		.hsync(hsync), .vsync(vsync), .vga_blank_n(vga_blank_n), .vga_clk(vga_clk), .bright(bright), 
 		.mode(mode), .x_start(x_start), .x_end(x_end), .y_start(y_start), .y_end(y_end),
 		.rgb_color(rgb_color), .hcount(hcount), .vcount(vcount)

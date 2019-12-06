@@ -1,7 +1,8 @@
-module vga_control (clk, rst, value, p1, p2, p3, p4, p1Btn, p2Btn, p3Btn, p4Btn, gameOver, gval, gbval, vga_blank_n, hsync, vsync, vga_clk, bright, mode, x_start, x_end, y_start, y_end, rgb_color, hcount, vcount);
+module vga_control (clk, rst, value, p1, p2, p3, p4, p1Btn, p2Btn, p3Btn, p4Btn, screenStatus, winnerPlayerNum, gval, gbval, vga_blank_n, hsync, vsync, vga_clk, bright, mode, x_start, x_end, y_start, y_end, rgb_color, hcount, vcount);
 	input			      clk, rst, p1Btn, p2Btn, p3Btn, p4Btn;
+	input		  [1:0]  screenStatus, winnerPlayerNum;
 	input	     [7:0]  value;
-	input		  [15:0] p1, p2, p3, p4, gameOver;
+	input		  [15:0] p1, p2, p3, p4;
 	output				hsync, vsync;
 	output reg			vga_blank_n, vga_clk, bright;
 	output reg [1:0]	mode;
@@ -24,6 +25,12 @@ module vga_control (clk, rst, value, p1, p2, p3, p4, p1Btn, p2Btn, p3Btn, p4Btn,
 	parameter MODE_8x8 	= 2'b01; 	// 8x8 glyph
 	parameter MODE_64x64 = 2'b10;		// 64x64 glyph
 	
+	// ###############################
+	//  Screen Statuses
+	// ###############################
+	parameter MAIN_MENU = 2'b00;
+	parameter IN_GAME = 2'b01;
+	parameter GAME_OVER = 2'b10;
 	
 	// ###############################
 	//  Counter Statistics
@@ -86,7 +93,7 @@ module vga_control (clk, rst, value, p1, p2, p3, p4, p1Btn, p2Btn, p3Btn, p4Btn,
 	// ###############################
 	//  Player Banners
 	// ###############################
-	parameter p_bg_x_start = 10'd140;
+	parameter p_bg_x_start = 10'd150;
 	parameter p_bg_y_start = 10'd284;
 	parameter p_bg_x_dim   = 10'd160;
 	parameter p_bg_y_dim   = 10'd15;
@@ -109,7 +116,16 @@ module vga_control (clk, rst, value, p1, p2, p3, p4, p1Btn, p2Btn, p3Btn, p4Btn,
 	parameter over_y_start = 10'd350;
 	parameter over_x_dim = 10'd50;
 	parameter over_y_dim = 10'd64;
+
 	
+	// ###############################
+	//  START MENU Glyphs
+	// ###############################
+	parameter start_x_start = 10'd235;
+	parameter start_y_start = 10'd100;
+	parameter start_x_dim = 10'd50;
+	parameter start_y_dim = 10'd64;	
+	parameter start_r1offset = 10'd118;
 
 	always @(posedge clk) begin
 		if (rst == 1'b0) begin
@@ -146,7 +162,10 @@ module vga_control (clk, rst, value, p1, p2, p3, p4, p1Btn, p2Btn, p3Btn, p4Btn,
 		y_end <= 10'd0;
 		mode <= MODE_BG;
 	
-		// bright
+	
+		// ###############################
+		//  BRIGHT
+		// ###############################
 		if ((hcount >= HS_START + HS_SYNC + HS_END)
 					&& (hcount < HS_TOTAL - HS_START) 
 					&& (vcount < VS_INIT)) begin
@@ -159,460 +178,813 @@ module vga_control (clk, rst, value, p1, p2, p3, p4, p1Btn, p2Btn, p3Btn, p4Btn,
 			vga_blank_n <= 1'b0;
 		end
 		
-		if (gameOver) begin
-			if ((vcount >= over_y_start) && (vcount < (over_y_start + over_y_dim))) begin
-				// G
-				if ((hcount >= (VS_START + over_x_start)) && (hcount < (VS_START + over_x_start + over_x_dim))) begin
-					gbval <= 6'd16;
-					
-					rgb_color <= rgb_text;
-					x_start 	 <= VS_START + over_x_start;
-					x_end 	 <= VS_START + over_x_start + over_x_dim;
-					y_start	 <= over_y_start;
-					y_end 	 <= over_y_start + main_y_dim;
-					mode		 <= MODE_64x64;
-				end
-				
-				// A
-				else if ((hcount >= (VS_START + over_x_start + over_x_dim)) && (hcount < (VS_START + over_x_start + 2*over_x_dim))) begin
-					gbval <= 6'ha;
-					
-					rgb_color <= rgb_text;
-					x_start 	 <= VS_START + over_x_start + over_x_dim;
-					x_end 	 <= VS_START + over_x_start + 2*over_x_dim;
-					y_start	 <= over_y_start;
-					y_end 	 <= over_y_start + main_y_dim;
-					mode		 <= MODE_64x64;
-				end
-				
-				// M
-				else if ((hcount >= (VS_START + over_x_start + 2*over_x_dim)) && (hcount < (VS_START + over_x_start + 3*over_x_dim))) begin
-					gbval <= 6'd22;
-					
-					rgb_color <= rgb_text;
-					x_start 	 <= VS_START + over_x_start + 2*over_x_dim;
-					x_end 	 <= VS_START + over_x_start + 3*over_x_dim;
-					y_start	 <= over_y_start;
-					y_end 	 <= over_y_start + main_y_dim;
-					mode		 <= MODE_64x64;
-				end
-				
-				// E
-				else if ((hcount >= (VS_START + over_x_start + 3*over_x_dim)) && (hcount < (VS_START + over_x_start + 4*over_x_dim))) begin
-					gbval <= 6'he;
-					
-					rgb_color <= rgb_text;
-					x_start 	 <= VS_START + over_x_start + 3*over_x_dim;
-					x_end 	 <= VS_START + over_x_start + 4*over_x_dim;
-					y_start	 <= over_y_start;
-					y_end 	 <= over_y_start + main_y_dim;
-					mode		 <= MODE_64x64;
-				end
-				
-				// O
-				else if ((hcount >= (VS_START + over_x_start + 5*over_x_dim)) && (hcount < (VS_START + over_x_start + 6*over_x_dim))) begin
-					gbval <= 6'd24;
-					
-					rgb_color <= rgb_text;
-					x_start 	 <= VS_START + over_x_start + 5*over_x_dim;
-					x_end 	 <= VS_START + over_x_start + 6*over_x_dim;
-					y_start	 <= over_y_start;
-					y_end 	 <= over_y_start + main_y_dim;
-					mode		 <= MODE_64x64;
-				end
-				
-				// V
-				else if ((hcount >= (VS_START + over_x_start + 6*over_x_dim)) && (hcount < (VS_START + over_x_start + 7*over_x_dim))) begin
-					gbval <= 6'd31;
-					
-					rgb_color <= rgb_text;
-					x_start 	 <= VS_START + over_x_start + 6*over_x_dim;
-					x_end 	 <= VS_START + over_x_start + 7*over_x_dim;
-					y_start	 <= over_y_start;
-					y_end 	 <= over_y_start + main_y_dim;
-					mode		 <= MODE_64x64;
-				end
-				
-				// E
-				else if ((hcount >= (VS_START + over_x_start + 7*over_x_dim)) && (hcount < (VS_START + over_x_start + 8*over_x_dim))) begin
-					gbval <= 6'he;
-					
-					rgb_color <= rgb_text;
-					x_start 	 <= VS_START + over_x_start + 7*over_x_dim;
-					x_end 	 <= VS_START + over_x_start + 8*over_x_dim;
-					y_start	 <= over_y_start;
-					y_end 	 <= over_y_start + main_y_dim;
-					mode		 <= MODE_64x64;
-				end
-				
-				// R
-				else if ((hcount >= (VS_START + over_x_start + 8*over_x_dim)) && (hcount < (VS_START + over_x_start + 9*over_x_dim))) begin
-					gbval <= 6'd27;
-					
-					rgb_color <= rgb_text;
-					x_start 	 <= VS_START + over_x_start + 8*over_x_dim;
-					x_end 	 <= VS_START + over_x_start + 9*over_x_dim;
-					y_start	 <= over_y_start;
-					y_end 	 <= over_y_start + main_y_dim;
-					mode		 <= MODE_64x64;
-				end
-				
-				// !
-				else if ((hcount >= (VS_START + over_x_start + 9*over_x_dim)) && (hcount < (VS_START + over_x_start + 10*over_x_dim))) begin
-					gbval <= 6'd39;
-					
-					rgb_color <= rgb_text;
-					x_start 	 <= VS_START + over_x_start + 9*over_x_dim;
-					x_end 	 <= VS_START + over_x_start + 10*over_x_dim;
-					y_start	 <= over_y_start;
-					y_end 	 <= over_y_start + main_y_dim;
-					mode		 <= MODE_64x64;
-				end
-			end
-		end
+		case (screenStatus)
 		
-		// Player 1 Score glyphs
-		if ((vcount >= p_gl_y_start) && (vcount < (p_gl_y_start + p_y_dim))) begin
-			// P
-			if ((hcount >= VS_START + p1_gl_x_start) && (hcount < (VS_START + p1_gl_x_start + p_x_dim))) begin
-				gval <= 6'd26;
-				
-				rgb_color <= rgb_text;
-				x_start 	 <= VS_START + p1_gl_x_start;
-				x_end 	 <= VS_START + p1_gl_x_start + p_x_dim;
-				y_start	 <= p_gl_y_start;
-				y_end 	 <= p_gl_y_start + p_y_dim;
-				mode		 <= MODE_8x8;
-			end
-		
-			// 1
-			else if ((hcount >= VS_START + p1_gl_x_start + p_x_dim) && (hcount < (VS_START + p1_gl_x_start + 2*p_x_dim))) begin
-				gval <= 6'h01;
-				
-				rgb_color <= rgb_text;
-				x_start 	 <= VS_START + p1_gl_x_start + p_x_dim;
-				x_end 	 <= VS_START + p1_gl_x_start + 2*p_x_dim;
-				y_start	 <= p_gl_y_start;
-				y_end 	 <= p_gl_y_start + p_y_dim;
-				mode		 <= MODE_8x8;
-			end
-		
-			// :
-			else if ((hcount >= VS_START + p1_gl_x_start + 2*p_x_dim) && (hcount < (VS_START + p1_gl_x_start + 3*p_x_dim))) begin
-				gval <= 6'd38;
-				
-				rgb_color <= rgb_text;
-				x_start 	 <= VS_START + p1_gl_x_start + 2*p_x_dim;
-				x_end 	 <= VS_START + p1_gl_x_start + 3*p_x_dim;
-				y_start	 <= p_gl_y_start;
-				y_end 	 <= p_gl_y_start + p_y_dim;
-				mode		 <= MODE_8x8;
+			MAIN_MENU: begin
+				// ###############################
+				//  HEX DEFENDERS
+				// ###############################
+				if ((vcount >= start_y_start) && (vcount < (start_y_start + start_y_dim))) begin
+					// H
+					if ((hcount >= (start_x_start + start_r1offset)) && (hcount < (start_x_start + start_r1offset + start_x_dim))) begin
+						gbval <= 6'd17;
+						
+						rgb_color <= rgb_text;
+						x_start   <= start_x_start + start_r1offset;
+						x_end     <= start_x_start + start_r1offset + start_x_dim;
+						y_start   <= start_y_start;
+						y_end     <= start_y_start + start_y_dim;
+						mode 		 <= MODE_64x64;
+					end
+					
+					// E
+					else if ((hcount >= (start_x_start + start_r1offset + start_x_dim)) && (hcount < (start_x_start + start_r1offset + 2*start_x_dim))) begin
+						gbval <= 6'd14;
+						
+						rgb_color <= rgb_text;
+						x_start   <= start_x_start + start_r1offset + start_x_dim;
+						x_end     <= start_x_start + start_r1offset + 2*start_x_dim;
+						y_start   <= start_y_start;
+						y_end     <= start_y_start + start_y_dim;
+						mode 		 <= MODE_64x64;
+					end
+					
+					// X
+					else if ((hcount >= (start_x_start + start_r1offset + 2*start_x_dim)) && (hcount < (start_x_start + start_r1offset + 3*start_x_dim))) begin
+						gbval <= 6'd33;
+						
+						rgb_color <= rgb_text;
+						x_start   <= start_x_start + start_r1offset + 2*start_x_dim;
+						x_end     <= start_x_start + start_r1offset + 3*start_x_dim;
+						y_start   <= start_y_start;
+						y_end     <= start_y_start + start_y_dim;
+						mode 		 <= MODE_64x64;
+					end
+					
+					// shield
+					else if ((hcount >= (start_x_start + start_r1offset + 3*start_x_dim)) && (hcount < (start_x_start + start_r1offset + 4*start_x_dim + 14))) begin
+						gbval <= 6'd40;
+						
+						rgb_color <= rgb_text;
+						x_start   <= start_x_start + start_r1offset + 3*start_x_dim;
+						x_end     <= start_x_start + start_r1offset + 4*start_x_dim + 14;
+						y_start   <= start_y_start;
+						y_end     <= start_y_start + start_y_dim;
+						mode 		 <= MODE_64x64;
+					end
+				end
+				else if ((vcount >= (start_y_start + start_y_dim)) && (vcount < (start_y_start + 2*start_y_dim))) begin
+					// D
+					if ((hcount >= (start_x_start)) && (hcount < (start_x_start + start_x_dim))) begin
+						gbval <= 6'd13;
+						
+						rgb_color <= rgb_text;
+						x_start   <= start_x_start;
+						x_end     <= start_x_start + start_x_dim;
+						y_start   <= start_y_start + start_y_dim;
+						y_end     <= start_y_start + 2*start_y_dim;
+						mode 		 <= MODE_64x64;
+					end
+					
+					// E
+					else if ((hcount >= (start_x_start + start_x_dim)) && (hcount < (start_x_start + 2*start_x_dim))) begin
+						gbval <= 6'd14;
+						
+						rgb_color <= rgb_text;
+						x_start   <= start_x_start + start_x_dim;
+						x_end     <= start_x_start + 2*start_x_dim;
+						y_start   <= start_y_start + start_y_dim;
+						y_end     <= start_y_start + 2*start_y_dim;
+						mode 		 <= MODE_64x64;
+					end
+					
+					// F
+					else if ((hcount >= (start_x_start + 2*start_x_dim)) && (hcount < (start_x_start + 3*start_x_dim))) begin
+						gbval <= 6'd15;
+						
+						rgb_color <= rgb_text;
+						x_start   <= start_x_start + 2*start_x_dim;
+						x_end     <= start_x_start + 3*start_x_dim;
+						y_start   <= start_y_start + start_y_dim;
+						y_end     <= start_y_start + 2*start_y_dim;
+						mode 		 <= MODE_64x64;
+					end
+					
+					// E
+					else if ((hcount >= (start_x_start + 3*start_x_dim)) && (hcount < (start_x_start + 4*start_x_dim))) begin
+						gbval <= 6'd14;
+						
+						rgb_color <= rgb_text;
+						x_start   <= start_x_start + 3*start_x_dim;
+						x_end     <= start_x_start + 4*start_x_dim;
+						y_start   <= start_y_start + start_y_dim;
+						y_end     <= start_y_start + 2*start_y_dim;
+						mode 		 <= MODE_64x64;
+					end
+					
+					// N
+					else if ((hcount >= (start_x_start + 4*start_x_dim)) && (hcount < (start_x_start + 5*start_x_dim))) begin
+						gbval <= 6'd23;
+						
+						rgb_color <= rgb_text;
+						x_start   <= start_x_start + 4*start_x_dim;
+						x_end     <= start_x_start + 5*start_x_dim;
+						y_start   <= start_y_start + start_y_dim;
+						y_end     <= start_y_start + 2*start_y_dim;
+						mode 		 <= MODE_64x64;
+					end
+					
+					// D
+					else if ((hcount >= (start_x_start + 5*start_x_dim)) && (hcount < (start_x_start + 6*start_x_dim))) begin
+						gbval <= 6'd13;
+						
+						rgb_color <= rgb_text;
+						x_start   <= start_x_start + 5*start_x_dim;
+						x_end     <= start_x_start + 6*start_x_dim;
+						y_start   <= start_y_start + start_y_dim;
+						y_end     <= start_y_start + 2*start_y_dim;
+						mode 		 <= MODE_64x64;
+					end
+					
+					// E
+					else if ((hcount >= (start_x_start + 6*start_x_dim)) && (hcount < (start_x_start + 7*start_x_dim))) begin
+						gbval <= 6'd14;
+						
+						rgb_color <= rgb_text;
+						x_start   <= start_x_start + 6*start_x_dim;
+						x_end     <= start_x_start + 7*start_x_dim;
+						y_start   <= start_y_start + start_y_dim;
+						y_end     <= start_y_start + 2*start_y_dim;
+						mode 		 <= MODE_64x64;
+					end
+					
+					// R
+					else if ((hcount >= (start_x_start + 7*start_x_dim)) && (hcount < (start_x_start + 8*start_x_dim))) begin
+						gbval <= 6'd27;
+						
+						rgb_color <= rgb_text;
+						x_start   <= start_x_start + 7*start_x_dim;
+						x_end     <= start_x_start + 8*start_x_dim;
+						y_start   <= start_y_start + start_y_dim;
+						y_end     <= start_y_start + 2*start_y_dim;
+						mode 		 <= MODE_64x64;
+					end
+					
+					// S
+					else if ((hcount >= (start_x_start + 8*start_x_dim)) && (hcount < (start_x_start + 9*start_x_dim))) begin
+						gbval <= 6'd28;
+						
+						rgb_color <= rgb_text;
+						x_start   <= start_x_start + 8*start_x_dim;
+						x_end     <= start_x_start + 9*start_x_dim;
+						y_start   <= start_y_start + start_y_dim;
+						y_end     <= start_y_start + 2*start_y_dim;
+						mode 		 <= MODE_64x64;
+					end
+				end
 			end
 			
-			else if ((hcount >= VS_START + p1_gl_x_start + 3*p_x_dim) && (hcount < (VS_START + p1_gl_x_start + 4*p_x_dim))) begin
-				gval <= p1;
+			IN_GAME: begin
+				// ###############################
+				//  PLAYER 1 glyphs
+				// ###############################
+				if ((vcount >= p_gl_y_start) && (vcount < (p_gl_y_start + p_y_dim))) begin
+					// P
+					if ((hcount >= (p1_gl_x_start)) && (hcount < (p1_gl_x_start + p_x_dim))) begin
+						gval <= 6'd26;
+						
+						rgb_color <= rgb_text;
+						x_start 	 <= p1_gl_x_start;
+						x_end 	 <= p1_gl_x_start + p_x_dim;
+						y_start	 <= p_gl_y_start;
+						y_end 	 <= p_gl_y_start + p_y_dim;
+						mode		 <= MODE_8x8;
+					end
 				
-				rgb_color <= rgb_text;
-				x_start 	 <= VS_START + p1_gl_x_start + 3*p_x_dim;
-				x_end 	 <= VS_START + p1_gl_x_start + 4*p_x_dim;
-				y_start	 <= p_gl_y_start;
-				y_end 	 <= p_gl_y_start + p_y_dim;
-				mode		 <= MODE_8x8;
-			end
-		
-		// Player 2 Score glyphs
-			// P
-			else if ((hcount >= VS_START + p2_gl_x_start) && (hcount < (VS_START + p2_gl_x_start + p_x_dim))) begin
-				gval <= 6'd26;
+					// 1
+					else if ((hcount >= p1_gl_x_start + p_x_dim) && (hcount < (p1_gl_x_start + 2*p_x_dim))) begin
+						gval <= 6'h01;
+						
+						rgb_color <= rgb_text;
+						x_start 	 <= p1_gl_x_start + p_x_dim;
+						x_end 	 <= p1_gl_x_start + 2*p_x_dim;
+						y_start	 <= p_gl_y_start;
+						y_end 	 <= p_gl_y_start + p_y_dim;
+						mode		 <= MODE_8x8;
+					end
 				
-				rgb_color <= rgb_text;
-				x_start 	 <= VS_START + p2_gl_x_start;
-				x_end 	 <= VS_START + p2_gl_x_start + p_x_dim;
-				y_start	 <= p_gl_y_start;
-				y_end 	 <= p_gl_y_start + p_y_dim;
-				mode		 <= MODE_8x8;
-			end
-		
-			// 2
-			else if ((hcount >= VS_START + p2_gl_x_start + p_x_dim) && (hcount < (VS_START + p2_gl_x_start + 2*p_x_dim))) begin
-				gval <= 6'h02;
+					// :
+					else if ((hcount >= p1_gl_x_start + 2*p_x_dim) && (hcount < (p1_gl_x_start + 3*p_x_dim))) begin
+						gval <= 6'd38;
+						
+						rgb_color <= rgb_text;
+						x_start 	 <= p1_gl_x_start + 2*p_x_dim;
+						x_end 	 <= p1_gl_x_start + 3*p_x_dim;
+						y_start	 <= p_gl_y_start;
+						y_end 	 <= p_gl_y_start + p_y_dim;
+						mode		 <= MODE_8x8;
+					end
+					
+					else if ((hcount >= p1_gl_x_start + 3*p_x_dim) && (hcount < (p1_gl_x_start + 4*p_x_dim))) begin
+						gval <= p1;
+						
+						rgb_color <= rgb_text;
+						x_start 	 <= p1_gl_x_start + 3*p_x_dim;
+						x_end 	 <= p1_gl_x_start + 4*p_x_dim;
+						y_start	 <= p_gl_y_start;
+						y_end 	 <= p_gl_y_start + p_y_dim;
+						mode		 <= MODE_8x8;
+					end
 				
-				rgb_color <= rgb_text;
-				x_start 	 <= VS_START + p2_gl_x_start + p_x_dim;
-				x_end 	 <= VS_START + p2_gl_x_start + 2*p_x_dim;
-				y_start	 <= p_gl_y_start;
-				y_end 	 <= p_gl_y_start + p_y_dim;
-				mode		 <= MODE_8x8;
-			end
-		
-			// :
-			else if ((hcount >= VS_START + p2_gl_x_start + 2*p_x_dim) && (hcount < (VS_START + p2_gl_x_start + 3*p_x_dim))) begin
-				gval <= 6'd38;
+				// ###############################
+				//  PLAYER 2 glyphs
+				// ###############################
+					// P
+					else if ((hcount >= p2_gl_x_start) && (hcount < (p2_gl_x_start + p_x_dim))) begin
+						gval <= 6'd26;
+						
+						rgb_color <= rgb_text;
+						x_start 	 <= p2_gl_x_start;
+						x_end 	 <= p2_gl_x_start + p_x_dim;
+						y_start	 <= p_gl_y_start;
+						y_end 	 <= p_gl_y_start + p_y_dim;
+						mode		 <= MODE_8x8;
+					end
 				
-				rgb_color <= rgb_text;
-				x_start 	 <= VS_START + p2_gl_x_start + 2*p_x_dim;
-				x_end 	 <= VS_START + p2_gl_x_start + 3*p_x_dim;
-				y_start	 <= p_gl_y_start;
-				y_end 	 <= p_gl_y_start + p_y_dim;
-				mode		 <= MODE_8x8;
+					// 2
+					else if ((hcount >= p2_gl_x_start + p_x_dim) && (hcount < (p2_gl_x_start + 2*p_x_dim))) begin
+						gval <= 6'h02;
+						
+						rgb_color <= rgb_text;
+						x_start 	 <= p2_gl_x_start + p_x_dim;
+						x_end 	 <= p2_gl_x_start + 2*p_x_dim;
+						y_start	 <= p_gl_y_start;
+						y_end 	 <= p_gl_y_start + p_y_dim;
+						mode		 <= MODE_8x8;
+					end
+				
+					// :
+					else if ((hcount >= p2_gl_x_start + 2*p_x_dim) && (hcount < (p2_gl_x_start + 3*p_x_dim))) begin
+						gval <= 6'd38;
+						
+						rgb_color <= rgb_text;
+						x_start 	 <= p2_gl_x_start + 2*p_x_dim;
+						x_end 	 <= p2_gl_x_start + 3*p_x_dim;
+						y_start	 <= p_gl_y_start;
+						y_end 	 <= p_gl_y_start + p_y_dim;
+						mode		 <= MODE_8x8;
+					end
+					
+					else if ((hcount >= p2_gl_x_start + 3*p_x_dim) && (hcount < (p2_gl_x_start + 4*p_x_dim))) begin
+						gval <= p2;
+						
+						rgb_color <= rgb_text;
+						x_start 	 <= p2_gl_x_start + 3*p_x_dim;
+						x_end 	 <= p2_gl_x_start + 4*p_x_dim;
+						y_start	 <= p_gl_y_start;
+						y_end 	 <= p_gl_y_start + p_y_dim;
+						mode		 <= MODE_8x8;
+					end
+					
+				// ###############################
+				//  PLAYER 3 glyphs
+				// ###############################
+					// P
+					else if ((hcount >= p3_gl_x_start) && (hcount < (p3_gl_x_start + p_x_dim))) begin
+						gval <= 6'd26;
+						
+						rgb_color <= rgb_text;
+						x_start 	 <= p3_gl_x_start;
+						x_end 	 <= p3_gl_x_start + p_x_dim;
+						y_start	 <= p_gl_y_start;
+						y_end 	 <= p_gl_y_start + p_y_dim;
+						mode		 <= MODE_8x8;
+					end
+				
+					// 3
+					else if ((hcount >= p3_gl_x_start + p_x_dim) && (hcount < (p3_gl_x_start + 2*p_x_dim))) begin
+						gval <= 6'h03;
+						
+						rgb_color <= rgb_text;
+						x_start 	 <= p3_gl_x_start + p_x_dim;
+						x_end 	 <= p3_gl_x_start + 2*p_x_dim;
+						y_start	 <= p_gl_y_start;
+						y_end 	 <= p_gl_y_start + p_y_dim;
+						mode		 <= MODE_8x8;
+					end
+				
+					// :
+					else if ((hcount >= p3_gl_x_start + 2*p_x_dim) && (hcount < (p3_gl_x_start + 3*p_x_dim))) begin
+						gval <= 6'd38;
+						
+						rgb_color <= rgb_text;
+						x_start 	 <= p3_gl_x_start + 2*p_x_dim;
+						x_end 	 <= p3_gl_x_start + 3*p_x_dim;
+						y_start	 <= p_gl_y_start;
+						y_end 	 <= p_gl_y_start + p_y_dim;
+						mode		 <= MODE_8x8;
+					end
+					
+					else if ((hcount >= p3_gl_x_start + 3*p_x_dim) && (hcount < (p3_gl_x_start + 4*p_x_dim))) begin
+						gval <= p3;
+						
+						rgb_color <= rgb_text;
+						x_start 	 <= p3_gl_x_start + 3*p_x_dim;
+						x_end 	 <= p3_gl_x_start + 4*p_x_dim;
+						y_start	 <= p_gl_y_start;
+						y_end 	 <= p_gl_y_start + p_y_dim;
+						mode		 <= MODE_8x8;
+					end
+					
+				// ###############################
+				//  PLAYER 4 glyphs
+				// ###############################
+					// P
+					else if ((hcount >= p4_gl_x_start) && (hcount < (p4_gl_x_start + p_x_dim))) begin
+						gval <= 6'd26;
+						
+						rgb_color <= rgb_text;
+						x_start 	 <= p4_gl_x_start;
+						x_end 	 <= p4_gl_x_start + p_x_dim;
+						y_start	 <= p_gl_y_start;
+						y_end 	 <= p_gl_y_start + p_y_dim;
+						mode		 <= MODE_8x8;
+					end
+				
+					// 4
+					else if ((hcount >= p4_gl_x_start + p_x_dim) && (hcount < (p4_gl_x_start + 2*p_x_dim))) begin
+						gval <= 6'h4;
+						
+						rgb_color <= rgb_text;
+						x_start 	 <= p4_gl_x_start + p_x_dim;
+						x_end 	 <= p4_gl_x_start + 2*p_x_dim;
+						y_start	 <= p_gl_y_start;
+						y_end 	 <= p_gl_y_start + p_y_dim;
+						mode		 <= MODE_8x8;
+					end
+				
+					// :
+					else if ((hcount >= p4_gl_x_start + 2*p_x_dim) && (hcount < (p4_gl_x_start + 3*p_x_dim))) begin
+						gval <= 6'd38;
+						
+						rgb_color <= rgb_text;
+						x_start 	 <= p4_gl_x_start + 2*p_x_dim;
+						x_end 	 <= p4_gl_x_start + 3*p_x_dim;
+						y_start	 <= p_gl_y_start;
+						y_end 	 <= p_gl_y_start + p_y_dim;
+						mode		 <= MODE_8x8;
+					end
+					
+					else if ((hcount >= p4_gl_x_start + 3*p_x_dim) && (hcount < (p4_gl_x_start + 4*p_x_dim))) begin
+						gval <= p4;
+						
+						rgb_color <= rgb_text;
+						x_start 	 <= p4_gl_x_start + 3*p_x_dim;
+						x_end 	 <= p4_gl_x_start + 4*p_x_dim;
+						y_start	 <= p_gl_y_start;
+						y_end 	 <= p_gl_y_start + p_y_dim;
+						mode		 <= MODE_8x8;
+					end
+				end
+			
+				// ###############################
+				//  MAIN VALUE
+				// ###############################
+				if ((vcount >= main_y_start) && (vcount < (main_y_start + main_y_dim))) begin
+					// 0
+					if ((hcount >= main_x_start) && (hcount < (main_x_start + main_x_dim))) begin
+						gbval <= 6'h0;
+						
+						rgb_color <= rgb_text;
+						x_start   <= main_x_start;
+						x_end     <= main_x_start + main_x_dim;
+						y_start   <= main_y_start;
+						y_end     <= main_y_start + main_y_dim;
+						mode 		 <= MODE_64x64;
+					end
+					
+					// x
+					else if ((hcount >= (main_x_start + main_x_dim)) && (hcount < (main_x_start + main_x_dim + main_x_dim))) begin
+						gbval <= 6'd37;
+						
+						rgb_color <= rgb_text;
+						x_start   <= main_x_start + main_x_dim;
+						x_end     <= main_x_start + main_x_dim + main_x_dim;
+						y_start   <= main_y_start;
+						y_end     <= main_y_start + main_y_dim;
+						mode 		 <= MODE_64x64;
+					end
+					
+					// hex1
+					else if ((hcount >= (main_x_start + 2*main_x_dim)) && (hcount < (main_x_start + 3*main_x_dim))) begin
+						gbval <= value[7:4];
+						
+						rgb_color <= rgb_text;
+						x_start   <= main_x_start + 2*main_x_dim;
+						x_end     <= main_x_start + 3*main_x_dim;
+						y_start   <= main_y_start;
+						y_end     <= main_y_start + main_y_dim;
+						mode		 <= MODE_64x64;
+						
+					end
+					
+					// hex0
+					else if ((hcount >= (main_x_start + 3*main_x_dim)) && (hcount < (main_x_start + 4*main_x_dim))) begin
+						gbval <= value[3:0];
+						
+						rgb_color <= rgb_text;
+						x_start   <= main_x_start + 3*main_x_dim;
+						x_end     <= main_x_start + 4*main_x_dim;
+						y_start   <= main_y_start;
+						y_end     <= main_y_start + 2*main_y_dim;
+						mode		 <= MODE_64x64;
+					end
+				end
 			end
 			
-			else if ((hcount >= VS_START + p2_gl_x_start + 3*p_x_dim) && (hcount < (VS_START + p2_gl_x_start + 4*p_x_dim))) begin
-				gval <= p2;
+			GAME_OVER: begin
+				case (winnerPlayerNum)
+					2'b00: begin
+						if ((vcount >= p_gl_y_start) && (vcount < (p_gl_y_start + p_y_dim))) begin
+							// P
+							if ((hcount >= (p1_gl_x_start)) && (hcount < (p1_gl_x_start + p_x_dim))) begin
+								gval <= 6'd26;
+								
+								rgb_color <= rgb_text;
+								x_start 	 <= p1_gl_x_start;
+								x_end 	 <= p1_gl_x_start + p_x_dim;
+								y_start	 <= p_gl_y_start;
+								y_end 	 <= p_gl_y_start + p_y_dim;
+								mode		 <= MODE_8x8;
+							end
+						
+							// 1
+							else if ((hcount >= p1_gl_x_start + p_x_dim) && (hcount < (p1_gl_x_start + 2*p_x_dim))) begin
+								gval <= 6'h01;
+								
+								rgb_color <= rgb_text;
+								x_start 	 <= p1_gl_x_start + p_x_dim;
+								x_end 	 <= p1_gl_x_start + 2*p_x_dim;
+								y_start	 <= p_gl_y_start;
+								y_end 	 <= p_gl_y_start + p_y_dim;
+								mode		 <= MODE_8x8;
+							end
+						
+							// :
+							else if ((hcount >= p1_gl_x_start + 2*p_x_dim) && (hcount < (p1_gl_x_start + 3*p_x_dim))) begin
+								gval <= 6'd38;
+								
+								rgb_color <= rgb_text;
+								x_start 	 <= p1_gl_x_start + 2*p_x_dim;
+								x_end 	 <= p1_gl_x_start + 3*p_x_dim;
+								y_start	 <= p_gl_y_start;
+								y_end 	 <= p_gl_y_start + p_y_dim;
+								mode		 <= MODE_8x8;
+							end
+							
+							else if ((hcount >= p1_gl_x_start + 3*p_x_dim) && (hcount < (p1_gl_x_start + 4*p_x_dim))) begin
+								gval <= p1;
+								
+								rgb_color <= rgb_text;
+								x_start 	 <= p1_gl_x_start + 3*p_x_dim;
+								x_end 	 <= p1_gl_x_start + 4*p_x_dim;
+								y_start	 <= p_gl_y_start;
+								y_end 	 <= p_gl_y_start + p_y_dim;
+								mode		 <= MODE_8x8;
+							end
+						end
+					end
+					
+					2'b01: begin
+						if ((vcount >= p_gl_y_start) && (vcount < (p_gl_y_start + p_y_dim))) begin
+							// P
+							if ((hcount >= p2_gl_x_start) && (hcount < (p2_gl_x_start + p_x_dim))) begin
+								gval <= 6'd26;
+								
+								rgb_color <= rgb_text;
+								x_start 	 <= p2_gl_x_start;
+								x_end 	 <= p2_gl_x_start + p_x_dim;
+								y_start	 <= p_gl_y_start;
+								y_end 	 <= p_gl_y_start + p_y_dim;
+								mode		 <= MODE_8x8;
+							end
+						
+							// 2
+							else if ((hcount >= p2_gl_x_start + p_x_dim) && (hcount < (p2_gl_x_start + 2*p_x_dim))) begin
+								gval <= 6'h02;
+								
+								rgb_color <= rgb_text;
+								x_start 	 <= p2_gl_x_start + p_x_dim;
+								x_end 	 <= p2_gl_x_start + 2*p_x_dim;
+								y_start	 <= p_gl_y_start;
+								y_end 	 <= p_gl_y_start + p_y_dim;
+								mode		 <= MODE_8x8;
+							end
+						
+							// :
+							else if ((hcount >= p2_gl_x_start + 2*p_x_dim) && (hcount < (p2_gl_x_start + 3*p_x_dim))) begin
+								gval <= 6'd38;
+								
+								rgb_color <= rgb_text;
+								x_start 	 <= p2_gl_x_start + 2*p_x_dim;
+								x_end 	 <= p2_gl_x_start + 3*p_x_dim;
+								y_start	 <= p_gl_y_start;
+								y_end 	 <= p_gl_y_start + p_y_dim;
+								mode		 <= MODE_8x8;
+							end
+							
+							else if ((hcount >= p2_gl_x_start + 3*p_x_dim) && (hcount < (p2_gl_x_start + 4*p_x_dim))) begin
+								gval <= p2;
+								
+								rgb_color <= rgb_text;
+								x_start 	 <= p2_gl_x_start + 3*p_x_dim;
+								x_end 	 <= p2_gl_x_start + 4*p_x_dim;
+								y_start	 <= p_gl_y_start;
+								y_end 	 <= p_gl_y_start + p_y_dim;
+								mode		 <= MODE_8x8;
+							end
+						end
+					end
+					2'b10: begin
+						if ((vcount >= p_gl_y_start) && (vcount < (p_gl_y_start + p_y_dim))) begin
+							// P
+							if ((hcount >= p3_gl_x_start) && (hcount < (p3_gl_x_start + p_x_dim))) begin
+								gval <= 6'd26;
+								
+								rgb_color <= rgb_text;
+								x_start 	 <= p3_gl_x_start;
+								x_end 	 <= p3_gl_x_start + p_x_dim;
+								y_start	 <= p_gl_y_start;
+								y_end 	 <= p_gl_y_start + p_y_dim;
+								mode		 <= MODE_8x8;
+							end
+						
+							// 3
+							else if ((hcount >= p3_gl_x_start + p_x_dim) && (hcount < (p3_gl_x_start + 2*p_x_dim))) begin
+								gval <= 6'h03;
+								
+								rgb_color <= rgb_text;
+								x_start 	 <= p3_gl_x_start + p_x_dim;
+								x_end 	 <= p3_gl_x_start + 2*p_x_dim;
+								y_start	 <= p_gl_y_start;
+								y_end 	 <= p_gl_y_start + p_y_dim;
+								mode		 <= MODE_8x8;
+							end
+						
+							// :
+							else if ((hcount >= p3_gl_x_start + 2*p_x_dim) && (hcount < (p3_gl_x_start + 3*p_x_dim))) begin
+								gval <= 6'd38;
+								
+								rgb_color <= rgb_text;
+								x_start 	 <= p3_gl_x_start + 2*p_x_dim;
+								x_end 	 <= p3_gl_x_start + 3*p_x_dim;
+								y_start	 <= p_gl_y_start;
+								y_end 	 <= p_gl_y_start + p_y_dim;
+								mode		 <= MODE_8x8;
+							end
+							
+							else if ((hcount >= p3_gl_x_start + 3*p_x_dim) && (hcount < (p3_gl_x_start + 4*p_x_dim))) begin
+								gval <= p3;
+								
+								rgb_color <= rgb_text;
+								x_start 	 <= p3_gl_x_start + 3*p_x_dim;
+								x_end 	 <= p3_gl_x_start + 4*p_x_dim;
+								y_start	 <= p_gl_y_start;
+								y_end 	 <= p_gl_y_start + p_y_dim;
+								mode		 <= MODE_8x8;
+							end
+						end
+					end
+					
+					2'b11: begin
+						if ((vcount >= p_gl_y_start) && (vcount < (p_gl_y_start + p_y_dim))) begin
+							// P
+							if ((hcount >= p4_gl_x_start) && (hcount < (p4_gl_x_start + p_x_dim))) begin
+								gval <= 6'd26;
+								
+								rgb_color <= rgb_text;
+								x_start 	 <= p4_gl_x_start;
+								x_end 	 <= p4_gl_x_start + p_x_dim;
+								y_start	 <= p_gl_y_start;
+								y_end 	 <= p_gl_y_start + p_y_dim;
+								mode		 <= MODE_8x8;
+							end
+						
+							// 4
+							else if ((hcount >= p4_gl_x_start + p_x_dim) && (hcount < (p4_gl_x_start + 2*p_x_dim))) begin
+								gval <= 6'h4;
+								
+								rgb_color <= rgb_text;
+								x_start 	 <= p4_gl_x_start + p_x_dim;
+								x_end 	 <= p4_gl_x_start + 2*p_x_dim;
+								y_start	 <= p_gl_y_start;
+								y_end 	 <= p_gl_y_start + p_y_dim;
+								mode		 <= MODE_8x8;
+							end
+						
+							// :
+							else if ((hcount >= p4_gl_x_start + 2*p_x_dim) && (hcount < (p4_gl_x_start + 3*p_x_dim))) begin
+								gval <= 6'd38;
+								
+								rgb_color <= rgb_text;
+								x_start 	 <= p4_gl_x_start + 2*p_x_dim;
+								x_end 	 <= p4_gl_x_start + 3*p_x_dim;
+								y_start	 <= p_gl_y_start;
+								y_end 	 <= p_gl_y_start + p_y_dim;
+								mode		 <= MODE_8x8;
+							end
+							
+							else if ((hcount >= p4_gl_x_start + 3*p_x_dim) && (hcount < (p4_gl_x_start + 4*p_x_dim))) begin
+								gval <= p4;
+								
+								rgb_color <= rgb_text;
+								x_start 	 <= p4_gl_x_start + 3*p_x_dim;
+								x_end 	 <= p4_gl_x_start + 4*p_x_dim;
+								y_start	 <= p_gl_y_start;
+								y_end 	 <= p_gl_y_start + p_y_dim;
+								mode		 <= MODE_8x8;
+							end
+						end
+					end
+					
+					default: begin
+						gbval <= 0;
+						rgb_color <= rgb_bg;
+						x_start   <= 0;
+						x_end     <= 0;
+						y_start   <= 0;
+						y_end     <= 0;
+						mode		 <= 0;
+					end
+				endcase
 				
-				rgb_color <= rgb_text;
-				x_start 	 <= VS_START + p2_gl_x_start + 3*p_x_dim;
-				x_end 	 <= VS_START + p2_gl_x_start + 4*p_x_dim;
-				y_start	 <= p_gl_y_start;
-				y_end 	 <= p_gl_y_start + p_y_dim;
-				mode		 <= MODE_8x8;
+				if ((vcount >= over_y_start) && (vcount < (over_y_start + over_y_dim))) begin
+					// G
+					if ((hcount >= (over_x_start)) && (hcount < (over_x_start + over_x_dim))) begin
+						gbval <= 6'd16;
+						
+						rgb_color <= rgb_text;
+						x_start 	 <= over_x_start;
+						x_end 	 <= over_x_start + over_x_dim;
+						y_start	 <= over_y_start;
+						y_end 	 <= over_y_start + main_y_dim;
+						mode		 <= MODE_64x64;
+					end
+					
+					// A
+					else if ((hcount >= (over_x_start + over_x_dim)) && (hcount < (over_x_start + 2*over_x_dim))) begin
+						gbval <= 6'ha;
+						
+						rgb_color <= rgb_text;
+						x_start 	 <= over_x_start + over_x_dim;
+						x_end 	 <= over_x_start + 2*over_x_dim;
+						y_start	 <= over_y_start;
+						y_end 	 <= over_y_start + main_y_dim;
+						mode		 <= MODE_64x64;
+					end
+					
+					// M
+					else if ((hcount >= (over_x_start + 2*over_x_dim)) && (hcount < (over_x_start + 3*over_x_dim))) begin
+						gbval <= 6'd22;
+						
+						rgb_color <= rgb_text;
+						x_start 	 <= over_x_start + 2*over_x_dim;
+						x_end 	 <= over_x_start + 3*over_x_dim;
+						y_start	 <= over_y_start;
+						y_end 	 <= over_y_start + main_y_dim;
+						mode		 <= MODE_64x64;
+					end
+					
+					// E
+					else if ((hcount >= (over_x_start + 3*over_x_dim)) && (hcount < (over_x_start + 4*over_x_dim))) begin
+						gbval <= 6'he;
+						
+						rgb_color <= rgb_text;
+						x_start 	 <= over_x_start + 3*over_x_dim;
+						x_end 	 <= over_x_start + 4*over_x_dim;
+						y_start	 <= over_y_start;
+						y_end 	 <= over_y_start + main_y_dim;
+						mode		 <= MODE_64x64;
+					end
+					
+					// O
+					else if ((hcount >= (over_x_start + 5*over_x_dim)) && (hcount < (over_x_start + 6*over_x_dim))) begin
+						gbval <= 6'd24;
+						
+						rgb_color <= rgb_text;
+						x_start 	 <= over_x_start + 5*over_x_dim;
+						x_end 	 <= over_x_start + 6*over_x_dim;
+						y_start	 <= over_y_start;
+						y_end 	 <= over_y_start + main_y_dim;
+						mode		 <= MODE_64x64;
+					end
+					
+					// V
+					else if ((hcount >= (over_x_start + 6*over_x_dim)) && (hcount < (over_x_start + 7*over_x_dim))) begin
+						gbval <= 6'd31;
+						
+						rgb_color <= rgb_text;
+						x_start 	 <= over_x_start + 6*over_x_dim;
+						x_end 	 <= over_x_start + 7*over_x_dim;
+						y_start	 <= over_y_start;
+						y_end 	 <= over_y_start + main_y_dim;
+						mode		 <= MODE_64x64;
+					end
+					
+					// E
+					else if ((hcount >= (over_x_start + 7*over_x_dim)) && (hcount < (over_x_start + 8*over_x_dim))) begin
+						gbval <= 6'he;
+						
+						rgb_color <= rgb_text;
+						x_start 	 <= over_x_start + 7*over_x_dim;
+						x_end 	 <= over_x_start + 8*over_x_dim;
+						y_start	 <= over_y_start;
+						y_end 	 <= over_y_start + main_y_dim;
+						mode		 <= MODE_64x64;
+					end
+					
+					// R
+					else if ((hcount >= (over_x_start + 8*over_x_dim)) && (hcount < (over_x_start + 9*over_x_dim))) begin
+						gbval <= 6'd27;
+						
+						rgb_color <= rgb_text;
+						x_start 	 <= over_x_start + 8*over_x_dim;
+						x_end 	 <= over_x_start + 9*over_x_dim;
+						y_start	 <= over_y_start;
+						y_end 	 <= over_y_start + main_y_dim;
+						mode		 <= MODE_64x64;
+					end
+					
+					// !
+					else if ((hcount >= (over_x_start + 9*over_x_dim)) && (hcount < (over_x_start + 10*over_x_dim))) begin
+						gbval <= 6'd39;
+						
+						rgb_color <= rgb_text;
+						x_start 	 <= over_x_start + 9*over_x_dim;
+						x_end 	 <= over_x_start + 10*over_x_dim;
+						y_start	 <= over_y_start;
+						y_end 	 <= over_y_start + main_y_dim;
+						mode		 <= MODE_64x64;
+					end
+				end
 			end
 			
-		// Player 3 Score glyphs
-			// P
-			else if ((hcount >= VS_START + p3_gl_x_start) && (hcount < (VS_START + p3_gl_x_start + p_x_dim))) begin
-				gval <= 6'd26;
-				
-				rgb_color <= rgb_text;
-				x_start 	 <= VS_START + p3_gl_x_start;
-				x_end 	 <= VS_START + p3_gl_x_start + p_x_dim;
-				y_start	 <= p_gl_y_start;
-				y_end 	 <= p_gl_y_start + p_y_dim;
-				mode		 <= MODE_8x8;
+			default: begin
+				gbval <= 0;
+				rgb_color <= rgb_bg;
+				x_start   <= 0;
+				x_end     <= 0;
+				y_start   <= 0;
+				y_end     <= 0;
+				mode		 <= 0;
 			end
 		
-			// 3
-			else if ((hcount >= VS_START + p3_gl_x_start + p_x_dim) && (hcount < (VS_START + p3_gl_x_start + 2*p_x_dim))) begin
-				gval <= 6'h03;
-				
-				rgb_color <= rgb_text;
-				x_start 	 <= VS_START + p3_gl_x_start + p_x_dim;
-				x_end 	 <= VS_START + p3_gl_x_start + 2*p_x_dim;
-				y_start	 <= p_gl_y_start;
-				y_end 	 <= p_gl_y_start + p_y_dim;
-				mode		 <= MODE_8x8;
-			end
+		endcase
 		
-			// :
-			else if ((hcount >= VS_START + p3_gl_x_start + 2*p_x_dim) && (hcount < (VS_START + p3_gl_x_start + 3*p_x_dim))) begin
-				gval <= 6'd38;
-				
-				rgb_color <= rgb_text;
-				x_start 	 <= VS_START + p3_gl_x_start + 2*p_x_dim;
-				x_end 	 <= VS_START + p3_gl_x_start + 3*p_x_dim;
-				y_start	 <= p_gl_y_start;
-				y_end 	 <= p_gl_y_start + p_y_dim;
-				mode		 <= MODE_8x8;
-			end
-			
-			else if ((hcount >= VS_START + p3_gl_x_start + 3*p_x_dim) && (hcount < (VS_START + p3_gl_x_start + 4*p_x_dim))) begin
-				gval <= p3;
-				
-				rgb_color <= rgb_text;
-				x_start 	 <= VS_START + p3_gl_x_start + 3*p_x_dim;
-				x_end 	 <= VS_START + p3_gl_x_start + 4*p_x_dim;
-				y_start	 <= p_gl_y_start;
-				y_end 	 <= p_gl_y_start + p_y_dim;
-				mode		 <= MODE_8x8;
-			end
-			
-		// Player 4 Score glyphs
-			// P
-			else if ((hcount >= VS_START + p4_gl_x_start) && (hcount < (VS_START + p4_gl_x_start + p_x_dim))) begin
-				gval <= 6'd26;
-				
-				rgb_color <= rgb_text;
-				x_start 	 <= VS_START + p4_gl_x_start;
-				x_end 	 <= VS_START + p4_gl_x_start + p_x_dim;
-				y_start	 <= p_gl_y_start;
-				y_end 	 <= p_gl_y_start + p_y_dim;
-				mode		 <= MODE_8x8;
-			end
-		
-			// 4
-			else if ((hcount >= VS_START + p4_gl_x_start + p_x_dim) && (hcount < (VS_START + p4_gl_x_start + 2*p_x_dim))) begin
-				gval <= 6'h4;
-				
-				rgb_color <= rgb_text;
-				x_start 	 <= VS_START + p4_gl_x_start + p_x_dim;
-				x_end 	 <= VS_START + p4_gl_x_start + 2*p_x_dim;
-				y_start	 <= p_gl_y_start;
-				y_end 	 <= p_gl_y_start + p_y_dim;
-				mode		 <= MODE_8x8;
-			end
-		
-			// :
-			else if ((hcount >= VS_START + p4_gl_x_start + 2*p_x_dim) && (hcount < (VS_START + p4_gl_x_start + 3*p_x_dim))) begin
-				gval <= 6'd38;
-				
-				rgb_color <= rgb_text;
-				x_start 	 <= VS_START + p4_gl_x_start + 2*p_x_dim;
-				x_end 	 <= VS_START + p4_gl_x_start + 3*p_x_dim;
-				y_start	 <= p_gl_y_start;
-				y_end 	 <= p_gl_y_start + p_y_dim;
-				mode		 <= MODE_8x8;
-			end
-			
-			else if ((hcount >= VS_START + p4_gl_x_start + 3*p_x_dim) && (hcount < (VS_START + p4_gl_x_start + 4*p_x_dim))) begin
-				gval <= p4;
-				
-				rgb_color <= rgb_text;
-				x_start 	 <= VS_START + p4_gl_x_start + 3*p_x_dim;
-				x_end 	 <= VS_START + p4_gl_x_start + 4*p_x_dim;
-				y_start	 <= p_gl_y_start;
-				y_end 	 <= p_gl_y_start + p_y_dim;
-				mode		 <= MODE_8x8;
-			end
-		end
-		
-		// Banners
-		else if ((vcount >= p_bg_y_start) && (vcount < (p_bg_y_start + p_bg_y_dim))) begin
+		// ###############################
+		//  BANNERS
+		// ###############################
+		if ((vcount >= p_bg_y_start) && (vcount < (p_bg_y_start + p_bg_y_dim))) begin
 			// Player 1 (red) 
-			if ((hcount >= VS_START + p_bg_x_start) && (hcount < (VS_START + p_bg_x_start + p_bg_x_dim))) begin
+			if ((hcount >= p_bg_x_start) && (hcount < (p_bg_x_start + p_bg_x_dim))) begin
 				rgb_color <= rgb_p1;
-				x_start   <= VS_START + p_bg_x_start;
-				x_end     <= VS_START + p_bg_x_start + p_bg_x_dim;
+				x_start   <= p_bg_x_start;
+				x_end     <= p_bg_x_start + p_bg_x_dim;
 				y_start   <= p_bg_y_start;
 				y_end     <= p_bg_y_start + p_bg_y_dim;
 				mode		 <= MODE_BG;
 			end
 		
 			// Player 2 (blue) 
-			else if ((hcount >= VS_START + p_bg_x_start + p_bg_x_dim) && (hcount < (VS_START + p_bg_x_start + 2*p_bg_x_dim))) begin
+			else if ((hcount >= p_bg_x_start + p_bg_x_dim) && (hcount < (p_bg_x_start + 2*p_bg_x_dim))) begin
 				rgb_color <= rgb_p2;
-				x_start   <= VS_START + p_bg_x_start + p_bg_x_dim;
-				x_end     <= VS_START + p_bg_x_start + 2*p_bg_x_dim;
+				x_start   <= p_bg_x_start + p_bg_x_dim;
+				x_end     <= p_bg_x_start + 2*p_bg_x_dim;
 				y_start   <= p_bg_y_start;
 				y_end     <= p_bg_y_start + p_bg_y_dim;
 				mode		 <= MODE_BG;
 			end
 			
 			// Player 3 (yellow)
-			else if ((hcount >= VS_START + p_bg_x_start + 2*p_bg_x_dim) && (hcount < (VS_START + p_bg_x_start + 3*p_bg_x_dim))) begin
+			else if ((hcount >= p_bg_x_start + 2*p_bg_x_dim) && (hcount < (p_bg_x_start + 3*p_bg_x_dim))) begin
 				rgb_color <= rgb_p3;
-				x_start   <= VS_START + p_bg_x_start + 2*p_bg_x_dim;
-				x_end     <= VS_START + p_bg_x_start + 3*p_bg_x_dim;
+				x_start   <= p_bg_x_start + 2*p_bg_x_dim;
+				x_end     <= p_bg_x_start + 3*p_bg_x_dim;
 				y_start   <= p_bg_y_start;
 				y_end     <= p_bg_y_start + p_bg_y_dim;
 				mode		 <= MODE_BG;
 			end
 			
 			// Player 4 (green)
-			else if ((hcount >= VS_START + p_bg_x_start + 3*p_bg_x_dim) && (hcount < (VS_START + p_bg_x_start + 4*p_bg_x_dim))) begin
+			else if ((hcount >= p_bg_x_start + 3*p_bg_x_dim) && (hcount < (p_bg_x_start + 4*p_bg_x_dim))) begin
 				rgb_color <= rgb_p4;
-				x_start   <= VS_START + p_bg_x_start + 3*p_bg_x_dim;
-				x_end     <= VS_START + p_bg_x_start + 4*p_bg_x_dim;
+				x_start   <= p_bg_x_start + 3*p_bg_x_dim;
+				x_end     <= p_bg_x_start + 4*p_bg_x_dim;
 				y_start   <= p_bg_y_start;
 				y_end     <= p_bg_y_start + p_bg_y_dim;
 				mode		 <= MODE_BG;
 			end
-		end
-	end
-	
-	// Start Menu
-	if (startMenu) begin
-		if ((vcount >= start_y_start) && (vcount < (start_y_start + start_y_dim))) begin
-			// H
-			if ((hcount >= start_x_start) && (vcount < (start_x_start + start_x_dim))) begin
-				gbval <= 6'd17;
-				
-				rgb_color <= rgb_text;
-				x_start   <= VS_START + start_x_start;
-				x_end     <= VS_START + start_x_start + start_x_dim;
-				y_start   <= start_y_start;
-				y_end     <= start_y_start + start_y_dim;
-				mode 		 <= MODE_64x64;
-			end
-			
-			// E
-			else if ((hcount >= (start_x_start + start_x_dim)) && (vcount < (start_x_start + 2*start_x_dim))) begin
-				gbval <= 6'd19;
-				
-				rgb_color <= rgb_text;
-				x_start   <= VS_START + start_x_start + start_x_dim;
-				x_end     <= VS_START + start_x_start + 2*start_x_dim;
-				y_start   <= start_y_start;
-				y_end     <= start_y_start + start_y_dim;
-				mode 		 <= MODE_64x64;
-			end
-			
-			// X
-			else if ((hcount >= (start_x_start + 2*start_x_dim)) && (vcount < (start_x_start + 3*start_x_dim))) begin
-				gbval <= 6'd33;
-				
-				rgb_color <= rgb_text;
-				x_start   <= VS_START + start_x_start + 2*start_x_dim;
-				x_end     <= VS_START + start_x_start + 3*start_x_dim;
-				y_start   <= start_y_start;
-				y_end     <= start_y_start + start_y_dim;
-				mode 		 <= MODE_64x64;
-			end
-			
-			// shield
-			else if ((hcount >= (start_x_start + 3*start_x_dim)) && (vcount < (start_x_start + 4*start_x_dim))) begin
-				gbval <= 6'd40;
-				
-				rgb_color <= rgb_text;
-				x_start   <= VS_START + start_x_start + 3*start_x_dim;
-				x_end     <= VS_START + start_x_start + 4*start_x_dim;
-				y_start   <= start_y_start;
-				y_end     <= start_y_start + start_y_dim;
-				mode 		 <= MODE_64x64;
-			end
-		end
-	end
-	else begin
-		// Load main value
-		if ((vcount >= main_y_start) && (vcount < (main_y_start + main_y_dim))) begin
-			// 0
-			if ((hcount >= main_x_start) && (hcount < (main_x_start + main_x_dim))) begin
-				gbval <= 6'h0;
-				
-				rgb_color <= rgb_text;
-				x_start   <= VS_START + main_x_start;
-				x_end     <= VS_START + main_x_start + main_x_dim;
-				y_start   <= main_y_start;
-				y_end     <= main_y_start + main_y_dim;
-				mode 		 <= MODE_64x64;
-			end
-			
-			// x
-			else if ((hcount >= (main_x_start + main_x_dim)) && (hcount < (main_x_start + main_x_dim + main_x_dim))) begin
-				gbval <= 6'd37;
-				
-				rgb_color <= rgb_text;
-				x_start   <= VS_START + main_x_start + main_x_dim;
-				x_end     <= VS_START + main_x_start + main_x_dim + main_x_dim;
-				y_start   <= main_y_start;
-				y_end     <= main_y_start + main_y_dim;
-				mode 		 <= MODE_64x64;
-			end
-			
-			// hex1
-			else if ((hcount >= (main_x_start + 2*main_x_dim)) && (hcount < (main_x_start + 3*main_x_dim))) begin
-				gbval <= value[7:4];
-				
-				rgb_color <= rgb_text;
-				x_start   <= VS_START + main_x_start + 2*main_x_dim;
-				x_end     <= VS_START + main_x_start + 3*main_x_dim;
-				y_start   <= main_y_start;
-				y_end     <= main_y_start + main_y_dim;
-				mode		 <= MODE_64x64;
-				
-			end
-			
-			// hex0
-			else if ((hcount >= (main_x_start + 3*main_x_dim)) && (hcount < (main_x_start + 4*main_x_dim))) begin
-				gbval <= value[3:0];
-				
-				rgb_color <= rgb_text;
-				x_start   <= VS_START + main_x_start + 3*main_x_dim;
-				x_end     <= VS_START + main_x_start + 4*main_x_dim;
-				y_start   <= main_y_start;
-				y_end     <= main_y_start + 2*main_y_dim;
-				mode		 <= MODE_64x64;
-			end
-		end
+		end // end banners
 	end
 	
 endmodule

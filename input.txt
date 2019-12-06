@@ -16,63 +16,72 @@
 
 SETUP:
 
-# Assuming Random number from LFSR is stored at memory address 0x0024
+# Assuming Random number from LFSR is stored at memory address 0x008D
 # Note about LFSR: The LFSR(random number generator register) is implemented in hardware
 #            and will continuously generate a random number with every clock cycle.
 #                This code is on git. Because this is continuous, in the actual application
 #                     I plan to store the random value for the current round in a different adr
 #                       in memory. This can be seen in the memory mapping in our documentation.
-.lfsr 0x008D;
-stor R0, .lfsr;    #default random value = 0
+.lfsr 0x0214;
+#stor R0, .lfsr;    #default random value = 0
 
-# Assuming the VGA address in I/O space @ memory address 0x002D
-.vga 0x00EC;
+# Assuming the VGA address in I/O space @ memory address 0x00EC
+.vga 0x03EF;
 
-# Assuming "PlayerInputFlag" value is stored at memory address 0x0025
-.playerInputFlag 0x008B;
+# Assuming "PlayerInputFlag" value is stored at memory address 0x008B
+.playerInputFlag 0x0212;
 
-# Assuming "FirstPlayerFlag" value is stored at memory address 0x0026
-.firstPlayerFlag 0x008A;
+# Assuming "FirstPlayerFlag" value is stored at memory address 0x008A
+.firstPlayerFlag 0x0211;
 
-# Assuming the first player's switch input value is stored at memory address 0x0027
-.switchValueAdr 0x008C;
+# Assuming the first player's switch input value is stored at memory address 0x008C
+.switchValueAdr 0x0213;
 
+# Assuming screenStatus is stored at memory address 0x0093
+.screenStatus 0x0219;
 
-DisplayRandomValue:
-load R4, .lfsr;    # Load random number from LFSR adr s.t. R4 = random number
-stor R4, .vga;    # Display random number on VGA screen
+# Assuming GameStarts flag is sdtored at memory address 0x0095
+.gameHasStarted 0x0216;
 
+# Assuming gameStatus is stored in memory address 0x0089
+.gameStatus 0x0210;
+
+# Assuming winnerPlyrNum is stored in memory address 0x0096
+.winnerPlyrNum 0x021C;
 
 
 Main:
 
-# Jump to Main Menu
+# Display Main Menu & set gameStatus to 0 & GameOverFlag = 0
+stor R0, .screenStatus; #This flag tells I/O whether or not to display menu screen
+stor R0, .gameStatus;
 
+# Jump to wait for game to start
+jal WaitForGameStart;
 
-# Jump to WaitForPlayer
-#movi $29, R14;
-#movi $1, R15;
-jal R15, WaitForPlayer;
-#jal R15, R14;
+# Dont display Main Menu
+movi 0x01, R3;
+stor R3, .screenStatus;
 
-# Jump to NothingLoop to wait for player to release button
-#movi $37, R14;
-#movi $1, R15;
-jal R15, NothingLoop;
-#jal R15, R14;
+DisplayRandomValue:
+   load R4, .lfsr;    # Load random number from LFSR adr s.t. R4 = random number
+   stor R4, .vga;    # Display random number on VGA screen
 
-# Load first player's switch input to R9
-load R9, .switchValueAdr;
+GameInMotion:
+   # Jump to WaitForPlayer
+   jal R15, WaitForPlayer;
 
-# Jump to CheckCorrectness
-#movi $45, R14;
-#movi $1, R15;
-jal R15, CheckCorrectness;
-#jal R15, R14;
+   # Jump to NothingLoop to wait for player to release button
+   jal R15, NothingLoop;
 
+   # Load first player's switch input to R9
+   load R9, .switchValueAdr;
 
-# Go to next round
-juc DisplayRandomValue;
+   # Jump to CheckCorrectness
+   jal R15, CheckCorrectness;
+
+   #Go to next round
+   juc DisplayRandomValue;
 
 
 EndMain:
@@ -104,13 +113,29 @@ NothingLoop:
    jeq NothingLoop;
    juc  R15;            # Function ends
 
+#
+# Function waits for game to start
+#
+WaitForGameStart:
+   load R2, .gameHasStarted;  # Load GameHasStarted value into R2
+   cmp  R2, R0;  # If (GameHasStarted == 0)
+   jeq  WaitForGameStart;             #   loop again
+   juc  R15;                           # Function ends
+
+#
+#
+#
+GameInMotionAfterFail:
+  movi 0x04, R3;
+  stor R3, .gameStatus;  # Play Fail sound
+  juc GameInMotion;
 
 #
 # Function checks if the player's input is correct answer
 #
 CheckCorrectness:
    cmp    R4, R9;                 # If (LFSR value != switch value)
-   jne   Main;                      #  begin waiting process again
+   jne   GameInMotionAfterFail;                      #  begin waiting process again
    #jne  WaitForPlayer;             #   jump to WaitForPlayerFunction
                                         ###possibly come back and add a screen display before this.
    load R10, .firstPlayerFlag;                        # Load firstPlayerFlag into R10
@@ -128,29 +153,48 @@ CheckCorrectness:
    awardFirstPlayer:
       movi 0x8E, R11;   # assuming Player 1's point lives in memory location 0xb100
       lui 0x00, R11;
+      stor R0, .winnerPlyrNum;
       juc incrementPt;  # jump to increment point;
 
    awardSecPlayer:
       movi 0x8F, R11;   # assuming Player 2's point lives in memory location 0xb101
       lui 0x00, R11;
+      movi 0x01, R3;
+      stor R3, .winnerPlyrNum;
       juc incrementPt;    # jump to increment point;
 
    awardThirdPlayer:
       movi 0x90, R11;   # assuming Player 3's point lives in memory location 0xb102
       lui 0x00, R11;
+      movi 0x02, R3;
+      stor R3, .winnerPlyrNum;
       juc incrementPt;  # jump to increment point;
 
    awardFourthPlayer:
       movi 0x91, R11;   # assuming Player 3's point lives in memory location 0xb103
       lui 0x00, R11;
+      movi 0x03, R3;
+      stor R3, .winnerPlyrNum;
       juc incrementPt;    # jump to increment point;
 
    incrementPt:
+      movi 0x02, .gameStatus;	# Play Success sound
       load R12, R11;            # Load Player's current point value into R12
       addi $1, R12;               # Player's current points + 1
+      cmpi 0x0a, R12;		  # If(player's score == 10)
+      jeq GameOver;
       stor R12, R11;                # Store Player's updated point back into memory
       juc CheckCorrectnessEnd;
 
 CheckCorrectnessEnd:
    juc  R15;            # Function ends
+
+
+#
+# Function displays GameOver screen and jumps to EndMain
+#
+GameOver: #only evaluate winnerPlyerNum when screenStatus == 2
+   movi 0x02, R3;
+   stor R3, .screenStatus;
+   juc EndMain;
 

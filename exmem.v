@@ -1,24 +1,25 @@
 `timescale 1ns / 1ps
 
-module exmem #(parameter WIDTH = 16, RAM_ADDR_BITS = 16)
+module exmem #(parameter WIDTH = 16, RAM_ADDR_BITS = 10)
    (input clk, rst, en,	
     input [8:0] pc,
     input memwrite, memread, link,
     input [RAM_ADDR_BITS-1:0] adr,
     input [WIDTH-1:0] writedata,
-	 input playerInputFlag, allButtons, gameOver,
-	 input [1:0] firstPlayerFlag,
+	 input playerInputFlag, allButtons, gameHasStarted,
+	 input [1:0] firstPlayerFlag, winnerPlayerNum, screenStatus,
 	 input [7:0] switchInput,
     output reg [WIDTH-1:0] memdata,
 	 output reg [WIDTH-1:0] instruction,
 	 output reg [WIDTH-1:0] randomVal,
-	 output reg [WIDTH-1:0] p1, p2, p3, p4
+	 output reg [WIDTH-1:0] p1, p2, p3, p4,
+	 output reg [2:0] gameStatus
     );
 	 
 	reg playerInputFlagReg;
 	wire [15:0] out;
 	//Currently 48 adressess available --> This will be expanded to 64k ultimately
-   reg [WIDTH-1:0] ram [(16*RAM_ADDR_BITS)-1:0];
+   reg [WIDTH-1:0] ram [(2**RAM_ADDR_BITS)-1:0];
 	
 	initial begin
 		
@@ -55,20 +56,25 @@ module exmem #(parameter WIDTH = 16, RAM_ADDR_BITS = 16)
 //			ram[16'h1] = 16'h4; // value
 	end
 	
-	LFSR randomNum (.clk(clk), .rst(rst), .out(out));
+	LFSR randomNum (.clk(clk), .rst(rst), .mem_val(randomVal), .out(out));
 	
 	//assign playerInputFlag = playerInputFlag & ram[16'd37][0];
 	
 	always @(posedge clk) begin
 		//playerInputVal <= ram[/*adr for flag*/];
-		ram[16'd141] <= out; //CHANGE THIS LATER WHEN MEM MAPPING IS EXPANDED
-		ram[16'd139] <= {15'b0,playerInputFlag};
-		ram[16'd140] <= switchInput;
-		ram[16'd138] <= firstPlayerFlag;
-		ram[16'd146] <= allButtons;
-		ram[16'd147] <= gameOver;
+		ram[16'd529] <= {14'b0, firstPlayerFlag};
+		ram[16'd530] <= {15'b0,playerInputFlag};
+		ram[16'd531] <= {8'b0, switchInput};
+		ram[16'd532] <= out; //CHANGE THIS LATER WHEN MEM MAPPING IS EXPANDED
+		
+		ram[16'd537] <= {15'b0, allButtons};
+		ram[16'd538] <= {14'b0, screenStatus};
+		ram[16'd539] <= {15'b0, gameHasStarted};
+		ram[16'd540] <= {14'b0, winnerPlayerNum};
+		
 		
 		instruction <= ram[pc];
+		gameStatus <= ram[16'd528];
 		
       if (en) begin
          if (memwrite) 
@@ -79,12 +85,12 @@ module exmem #(parameter WIDTH = 16, RAM_ADDR_BITS = 16)
 				memdata <= pc + 1'b1;
       end
 		else begin
-			if (adr == 16'd236 && instruction[7:4] == 4'b0100) begin
+			if (adr == 16'd1007 && instruction[7:4] == 4'b0100) begin
 				randomVal <= writedata;
-				p1 <= ram[16'd142]; //tEMP VALUES: NEEDS TO BE CHANGED LATER
-				p2 <= ram[16'd143];
-				p3 <= ram[16'd144];
-				p4 <= ram[16'd145];
+				p1 <= ram[16'd533]; //tEMP VALUES: NEEDS TO BE CHANGED LATER
+				p2 <= ram[16'd534];
+				p3 <= ram[16'd535];
+				p4 <= ram[16'd536];
 			end
 		
 		end
