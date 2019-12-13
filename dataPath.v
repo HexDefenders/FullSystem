@@ -1,18 +1,15 @@
 module dataPath(clk, memdata, instruction, aluControl, exMemResultEn, pcRegEn, srcRegEn, dstRegEn, immRegEn, signEn, 
-					 regFileEn, pcRegMuxEn, mux4En, shiftALUMuxEn, irS, regImmMuxEn, srcData, dstData, adr, signOut, C, L, F, Z, N);
+					 regFileEn, pcRegMuxEn, srcSignOutEn, shiftALUMuxEn, irS, regImmMuxEn, srcData, dstData, adr, signOut, C, L, F, Z, N);
 	input clk;
 	input [15:0] instruction, memdata;
 	input [3:0] aluControl;
-	//why are some mux 2 control signals 2 bits?
 	input pcRegEn, srcRegEn, dstRegEn, immRegEn, signEn, regFileEn, pcRegMuxEn, shiftALUMuxEn, regImmMuxEn, irS;
-	input [1:0] mux4En, exMemResultEn;
+	input [1:0] srcSignOutEn, exMemResultEn;
 	wire [3:0] src, dst, Rsrc, Rdest, OpCode, OpCodeExt;
 	wire [15:0] result, exMemOrResult, shiftOrALU, regFileResult, pcOrReg, mux4Out, aluResult, regOrImm, shiftOut;
 	wire [7:0] instImm, imm;
-	//wire C, L, F, Z, N;
 	output [15:0] srcData, dstData, adr, signOut;
 	output C, L, F, Z, N;
-	//output [3:0] pc;
 	
 	instructionRegister instructionRegister(.inst(instruction), .s(irS), .OpCode(OpCode), .Rdest(Rdest), .OpCodeExt(OpCodeExt), .Rsrc(Rsrc), .imm(instImm));
 		
@@ -26,8 +23,7 @@ module dataPath(clk, memdata, instruction, aluControl, exMemResultEn, pcRegEn, s
 	
 	signExtend signExtend(.in(imm), .s(signEn), .out(signOut));
 	
-	// Could be updated to mux2
-	mux4 toALUMux(.d0(srcData), .d1(signOut), .d2(1), .d3(0), .s(mux4En), .y(mux4Out));
+	mux2 toAluMux(.d0(srcData), .d1(signOut), .s(srcSignOutEn), .y(mux4Out));
 	
 	alu ALU(.clk(clk), .a(mux4Out), .b(dstData), .aluControl(aluControl), .Cout(C), .Lout(L), .Fout(F), .Zout(Z), .Nout(N), .result(aluResult));
 	
@@ -36,8 +32,5 @@ module dataPath(clk, memdata, instruction, aluControl, exMemResultEn, pcRegEn, s
 	shifter shifter(.in(dstData), .s(regOrImm), .out(shiftOut));
 	
 	mux2 shiftOrALUMux(.d0(aluResult), .d1(shiftOut), .s(shiftALUMuxEn), .y(shiftOrALU));
-	
-	//d1 use to be pc, could be updated to mux2
-	//mux4 srcRegOrPCMux(.d0(srcData), .d1(0), .d2(result), .d3(0), .s(regpcCont), .y(adr));
 
 endmodule 
