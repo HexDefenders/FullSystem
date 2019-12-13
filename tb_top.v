@@ -2,13 +2,13 @@
 
 module tb_top();
 	reg clk, rst;
-	reg [35:0] gpio1;
+	reg [40:1] gpins;
 //	reg [15:0] instruction;
 	wire hsync, vsync, vga_blank_n, vga_clk;
 	wire [7:0] r, g, b;
 
 	top uut1 (
-		.clk(clk), .rst(rst), .gpio1(gpio1),
+		.clk(clk), .rst(rst), .gpio1(gpins),
 		.hsync(hsync), .vsync(vsync), .vga_blank_n(vga_blank_n), 
 		.vga_clk(vga_clk), .r(r), .g(g), .b(b));
 
@@ -17,15 +17,17 @@ module tb_top();
 			
 		clk = 0;
 		rst = 1;
-		gpio1 = 0; #5;
+		gpins = 0; #5;
 		
 		rst = 0; #10;
 		rst = 1; #1000;
 		
+		gpins[37] = 1; #120000;
+		gpins[37] = 0; #1000;
 		
-		{gpio1[32],gpio1[33],gpio1[30],gpio1[31],gpio1[28],gpio1[29],gpio1[26],gpio1[27]} = 8'hfc;
-		gpio1[25] = 1; #200000;
-		gpio1[25] = 0; #2000;
+		{gpins[35],gpins[21],gpins[33],gpins[23],gpins[31],gpins[25],gpins[39],gpins[27]} = 8'hfc;
+		gpins[37] = 1; #200000;
+		gpins[37] = 0; #2000;
 		
 		
 		//Pre-existing values hardcoded into Registers

@@ -16,32 +16,31 @@
 
 SETUP:
 
-# Assuming Random number from LFSR is stored at memory address 0x008D
+# Assuming Random number from LFSR is stored at memory address 532
 # Note about LFSR: The LFSR(random number generator register) is implemented in hardware
 #            and will continuously generate a random number with every clock cycle.
 #                This code is on git. Because this is continuous, in the actual application
 #                     I plan to store the random value for the current round in a different adr
 #                       in memory. This can be seen in the memory mapping in our documentation.
 .lfsr 0x0214;
-#stor R0, .lfsr;    #default random value = 0
 
-# Assuming the VGA address in I/O space @ memory address 0x00EC
+# Assuming the VGA address in I/O space @ memory address 1007
 .vga 0x03EF;
 
-# Assuming "PlayerInputFlag" value is stored at memory address 0x008B
+# Assuming "PlayerInputFlag" value is stored at memory address 530
 .playerInputFlag 0x0212;
 
-# Assuming "FirstPlayerFlag" value is stored at memory address 0x008A
+# Assuming "FirstPlayerFlag" value is stored at memory address 529
 .firstPlayerFlag 0x0211;
 
-# Assuming the first player's switch input value is stored at memory address 0x008C
+# Assuming the first player's switch input value is stored at memory address 531
 .switchValueAdr 0x0213;
 
-# Assuming screenStatus is stored at memory address 0x0093
-.screenStatus 0x0219;
+# Assuming screenStatus is stored at memory address 537
+.screenStatus 0x021A;
 
 # Assuming GameStarts flag is sdtored at memory address 0x0095
-.gameHasStarted 0x0216;
+.gameHasStarted 0x021B;
 
 # Assuming gameStatus is stored in memory address 0x0089
 .gameStatus 0x0210;
@@ -56,8 +55,25 @@ Main:
 stor R0, .screenStatus; #This flag tells I/O whether or not to display menu screen
 stor R0, .gameStatus;
 
+# Initialize player scores to 0
+movi 0x15, R11;		# P1 address 0x0215
+lui 0x02, R11;
+stor R0, R11;
+
+movi 0x16, R11;		# P2 address 0x0216
+lui 0x02, R11;
+stor R0, R11;
+
+movi 0x17, R11;		# P3 address 0x0217
+lui 0x02, R11;
+stor R0, R11;
+
+movi 0x18, R11;		# P4 address 0x0218
+lui 0x02, R11;
+stor R0, R11;
+
 # Jump to wait for game to start
-jal WaitForGameStart;
+jal R15, WaitForGameStart;
 
 # Dont display Main Menu
 movi 0x01, R3;
@@ -136,8 +152,6 @@ GameInMotionAfterFail:
 CheckCorrectness:
    cmp    R4, R9;                 # If (LFSR value != switch value)
    jne   GameInMotionAfterFail;                      #  begin waiting process again
-   #jne  WaitForPlayer;             #   jump to WaitForPlayerFunction
-                                        ###possibly come back and add a screen display before this.
    load R10, .firstPlayerFlag;                        # Load firstPlayerFlag into R10
 
    # Determine who the first player was:
@@ -151,28 +165,28 @@ CheckCorrectness:
    jeq awardFourthPlayer; #  jump to award fourth player's point
 
    awardFirstPlayer:
-      movi 0x8E, R11;   # assuming Player 1's point lives in memory location 0xb100
-      lui 0x00, R11;
+      movi 0x15, R11;   # assuming Player 1's point lives in memory location 533
+      lui 0x02, R11;
       stor R0, .winnerPlyrNum;
       juc incrementPt;  # jump to increment point;
 
    awardSecPlayer:
-      movi 0x8F, R11;   # assuming Player 2's point lives in memory location 0xb101
-      lui 0x00, R11;
+      movi 0x16, R11;   # assuming Player 2's point lives in memory location 534
+      lui 0x02, R11;
       movi 0x01, R3;
       stor R3, .winnerPlyrNum;
       juc incrementPt;    # jump to increment point;
 
    awardThirdPlayer:
-      movi 0x90, R11;   # assuming Player 3's point lives in memory location 0xb102
-      lui 0x00, R11;
+      movi 0x17, R11;   # assuming Player 3's point lives in memory location 535
+      lui 0x02, R11;
       movi 0x02, R3;
       stor R3, .winnerPlyrNum;
       juc incrementPt;  # jump to increment point;
 
    awardFourthPlayer:
-      movi 0x91, R11;   # assuming Player 3's point lives in memory location 0xb103
-      lui 0x00, R11;
+      movi 0x18, R11;   # assuming Player 3's point lives in memory location 536
+      lui 0x02, R11;
       movi 0x03, R3;
       stor R3, .winnerPlyrNum;
       juc incrementPt;    # jump to increment point;

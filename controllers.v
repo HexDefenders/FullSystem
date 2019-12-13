@@ -27,10 +27,10 @@ module controllers (clk, rst, gpins, playerInput, playerInputFlag, allButtons, g
 	btn_debounce #(100000) bd3 (.clk(clk), .in_btn(gpins[16]), .out_btn(db_btn3));
 	btn_debounce #(100000) bd4 (.clk(clk), .in_btn(gpins[9]), .out_btn(db_btn4));
 	
-	sec5_counter _sec5_btn1 (.clk(clk), .in(gpins[37]), .out(sec5_btn1));
-	sec5_counter _sec5_btn2 (.clk(clk), .in(gpins[24]), .out(sec5_btn2));
-	sec5_counter _sec5_btn3 (.clk(clk), .in(gpins[16]), .out(sec5_btn3));
-	sec5_counter _sec5_btn4 (.clk(clk), .in(gpins[9]), .out(sec5_btn4));
+	sec5_counter _sec5_btn1 (.clk(clk), .rst(rst), .in(gpins[37]), .out(sec5_btn1));
+	sec5_counter _sec5_btn2 (.clk(clk), .rst(rst), .in(gpins[24]), .out(sec5_btn2));
+	sec5_counter _sec5_btn3 (.clk(clk), .rst(rst), .in(gpins[16]), .out(sec5_btn3));
+	sec5_counter _sec5_btn4 (.clk(clk), .rst(rst), .in(gpins[9]), .out(sec5_btn4));
 	
 	
 	assign led = sec5_btn1;
@@ -130,7 +130,9 @@ module sec5_counter (clk, rst, in, out);
 	
 	reg [27:0] counter;
 	
+	// 5 secs = 5000000000 / 
 	parameter[27:0] MAX = 28'd250000000;
+//	parameter[27:0] MAX = 28'd5000;
 	
 	always @(posedge clk) begin
 		if (!rst) begin
@@ -140,8 +142,9 @@ module sec5_counter (clk, rst, in, out);
 		else if (in) begin
 			if (counter >= MAX) begin
 				out <= 1;
+			end begin
+				counter <= counter + 1;
 			end
-			counter <= counter + 1;
 		end
 		else begin
 			out <= 0;

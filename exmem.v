@@ -71,7 +71,6 @@ module exmem #(parameter WIDTH = 16, RAM_ADDR_BITS = 10)
 		ram[16'd537] <= {15'b0, allButtons};
 		ram[16'd539] <= {15'b0, gameHasStarted};
 		
-		
 		instruction <= ram[pc];
 		gameStatus <= ram[16'd528];
 		winnerPlayerNum <= ram[16'd540];
