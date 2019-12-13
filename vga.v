@@ -38,9 +38,5 @@ module vga (clk, rst, value, p1, p2, p3, p4, p1Btn, p2Btn, p3Btn, p4Btn, screenS
 		.bright(bright), .hcount(hcount), .vcount(vcount), .glyph(glyph), .bglyph(bglyph), .mode(mode),
 		.x_start(x_start), .x_end(x_end), .y_start(y_start), .y_end(y_end), .rgb_color(rgb_color), .rgb({r,g,b})
 	);
-
-//	switch_tester uut5 (
-//		.gpins(gpins), .bright(bright), .hcount(hcount), .vcount(vcount), .rgb({r,g,b})
-//	);
 	
 endmodule

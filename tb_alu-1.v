@@ -81,8 +81,6 @@ module tb_alu();
 		a = 16'h0001;
 		b = 16'h0002;
 		aluControl = 4'b0001; #200;
-//		if (!(N == 1)) 
-//			$display("NEGATIVE ERROR");
 		if (!(C == 1))
 			$display("UNSIGNED OVERFLOW ERROR");
 			

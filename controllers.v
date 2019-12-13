@@ -27,24 +27,28 @@ module controllers (clk, rst, gpins, playerInput, playerInputFlag, allButtons, g
 	btn_debounce #(100000) bd3 (.clk(clk), .in_btn(gpins[16]), .out_btn(db_btn3));
 	btn_debounce #(100000) bd4 (.clk(clk), .in_btn(gpins[9]), .out_btn(db_btn4));
 	
+	// wait 5 seconds on each button to send signal to start game
 	sec5_counter _sec5_btn1 (.clk(clk), .rst(rst), .in(gpins[37]), .out(sec5_btn1));
 	sec5_counter _sec5_btn2 (.clk(clk), .rst(rst), .in(gpins[24]), .out(sec5_btn2));
 	sec5_counter _sec5_btn3 (.clk(clk), .rst(rst), .in(gpins[16]), .out(sec5_btn3));
 	sec5_counter _sec5_btn4 (.clk(clk), .rst(rst), .in(gpins[9]), .out(sec5_btn4));
 	
-	
-	assign led = sec5_btn1;
+	// if any button was held for 5 seconds, game should start
 	assign gameHasStarted = sec5_btn1 | sec5_btn2 | sec5_btn3 | sec5_btn4;
 	
+	// Player 1 Controller pin mapping
 	assign p1_sw = {gpins[35],gpins[21],gpins[33],gpins[23],gpins[31],gpins[25],gpins[39],gpins[27]};
 	assign p1_btn = db_btn1;
 	
+	// Player 2 Controller pin mapping
 	assign p2_sw = {gpins[36],gpins[34],gpins[38],gpins[32],gpins[40],gpins[28],gpins[22],gpins[26]};
 	assign p2_btn = db_btn2;
 	
+	// Player 3 Controller pin mapping
 	assign p3_sw = {gpins[6],gpins[4],gpins[8],gpins[2],gpins[10],gpins[20],gpins[14],gpins[18]};
 	assign p3_btn = db_btn3;
 	
+	// Player 4 Controller pin mapping
 	assign p4_sw = {gpins[1],gpins[15],gpins[3],gpins[17],gpins[5],gpins[19],gpins[7],gpins[13]};
 	assign p4_btn = db_btn4;
 	
@@ -129,11 +133,8 @@ module sec5_counter (clk, rst, in, out);
 	output reg out;
 	
 	reg [27:0] counter;
-	
-	// 5 secs = 5000000000 / 
 	parameter[27:0] MAX = 28'd250000000;
-//	parameter[27:0] MAX = 28'd5000;
-	
+
 	always @(posedge clk) begin
 		if (!rst) begin
 			counter <= 0;
